@@ -68,7 +68,10 @@ uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t
     uint8_t *state = key_event_queue_state();
 
     if (delta) {
-        if (*state == STATE_DEFAULT && delta >= behavior->timeout_ms) {
+        if (
+            *state == STATE_DEFAULT &&
+            behavior->timeout_ms && delta >= behavior->timeout_ms
+        ) {
             uint8_t decision = behavior->flags & HOLD_TAP_FLAGS_TIMEOUT_DECISION_MASK;
 
             if (decision == HOLD_TAP_FLAGS_TIMEOUT_DECISION_TAP) {
