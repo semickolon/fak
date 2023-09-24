@@ -9,18 +9,29 @@ uint32_t get_real_key_code(uint8_t key_idx) {
 #if LAYER_COUNT == 1
     return key_map[key_idx];
 #else
+
 #ifdef LAYER_TRANSPARENCY_ENABLE
+#define IS_HOLD_TRANS (hold == 0xFFFF)
+#define IS_TAP_TRANS (tap == 0xFFFF)
     uint16_t hold = 0xFFFF;
     uint16_t tap = 0xFFFF;
     uint8_t layer_idx = LAYER_COUNT - 1;
 
     do {
-        if (is_layer_on(layer_idx)) {
-            uint32_t key_code = key_map[layer_idx][key_idx];
-            if (hold == 0xFFFF) hold = key_code >> 16;
-            if (tap == 0xFFFF)  tap = key_code & 0xFFFF;
+        if (!is_layer_on(layer_idx))
+            continue;
+        
+        uint32_t key_code = key_map[layer_idx][key_idx];
+
+        // Bail out if this keycode is not a hold-tap (e.g. tap dance)
+        //  and if either hold or tap, but not both, is still transparent.
+        if ((key_code >> 28) == 0xE && (IS_HOLD_TRANS ^ IS_TAP_TRANS)) {
+            return 0;
         }
-    } while (layer_idx-- && (hold == 0xFFFF || tap == 0xFFFF));
+
+        if (IS_HOLD_TRANS) hold = key_code >> 16;
+        if (IS_TAP_TRANS)  tap = key_code & 0xFFFF;
+    } while (layer_idx-- && (IS_HOLD_TRANS || IS_TAP_TRANS));
 
     if (hold == 0xFFFF) hold = 0;
     if (tap == 0xFFFF)  tap = 0;
@@ -28,6 +39,7 @@ uint32_t get_real_key_code(uint8_t key_idx) {
 #else
     return key_map[get_highest_layer_idx()][key_idx];
 #endif
+
 #endif
 }
 
