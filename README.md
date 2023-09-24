@@ -8,11 +8,11 @@ FAK stands for F.A. Keyboard. F.A. are the initials of a person who silently cra
 
 ## Why FAK?
 
-I live in a country where Pi Picos and Pro Micros are not considered cheap. When I began the search for making keyboards as cheap as possible on the hardware side, I discovered CH55x chips which are *much* cheaper. Picos need an external QSPI flash. Pro Micros need an external clock. As for the CH55x however, all you need to get it running is the chip itself and two capacitors. You can get a complete MCU for less than a dollar.
+I live in a country where Pi Picos and Pro Micros are not considered cheap. When I began the search for making keyboards as cheap as possible, I discovered CH55x chips which are *much* cheaper. RP2040 needs an external QSPI flash. ATmega32U4 needs an external clock. As for the CH55x however, all you need to get it running is the chip itself and two capacitors. You can get a complete MCU for less than a dollar.
 
-Besides that, I want to be able to make keyboard configurations **declaratively**. ZMK already does this to an extent, but FAK is way more flexible as it uses a purely* functional programming language designed for configs called [Nickel](https://nickel-lang.org/). This means you can do crazy things like layout parameterization, keycodes as variables, reusing and parameterizing parts of your keymap, and much more. In fact, Nickel is responsible for turning your config into C code!
+Besides that, I want to be able to make keyboard configurations **declaratively**. ZMK already does this to an extent, but FAK is way more flexible as it uses a purely[^1] functional programming language designed for configs called [Nickel](https://nickel-lang.org/). This means you can do crazy things like layout parameterization, keycodes as variables, reusing and parameterizing parts of your keymap, and much more. In fact, Nickel is responsible for turning your config into C code!
 
-*Almost. Side-effects are allowed but very constrained.
+[^1]: Almost pure. Side-effects are allowed but very constrained.
 
 ## Compatible hardware
 
@@ -84,7 +84,7 @@ Inspired by and building on top of ZMK.
 - Quick tap interrupt. Allows a quick tap to re-resolve to a hold if interrupted by another key press.
 - Global quick tap. Allows hold-taps to resolve as a tap during continuous typing.
 - Global quick tap ignore consecutive. Ignores global quick tap if the same key is pressed at least twice in a row.
-- Eager decision. Allows hold-taps to pre-resolve as a hold or a tap until the actual decision is made.
+- Eager decision. Allows hold-taps to pre-resolve as a hold or a tap until the actual decision is made. If the actual decision doesn't match the eager decision, the eager is reversed then the actual is applied. Otherwise, if the decisions match, nothing else happens because it's as if the hold-tap predicted the future.
 
 ```
 let my_crazy_behavior = {
@@ -93,7 +93,7 @@ let my_crazy_behavior = {
   eager_decision = 'tap,     # Can be set to 'hold, 'tap, or 'none (default)
   key_interrupts = [         # Size of this must match key count. This assumes we have 5 keys.
     { decision = 'hold, trigger_on = 'press },      # Similar to ZMK's hold-preferred / QMK's HOLD_ON_OTHER_KEY_PRESS
-    { decision = 'tap, trigger_on = 'press },       # Similar to ZMK's tap-unless-interrupted
+    { decision = 'tap, trigger_on = 'press },
     { decision = 'hold, trigger_on = 'release },    # Similar to ZMK's balanced / QMK's PERMISSIVE_HOLD
     { decision = 'tap, trigger_on = 'release },
     { decision = 'none },                           # Similar to ZMK's tap-preferred
@@ -112,7 +112,7 @@ let my_crazy_key =
 in
 ```
 
-Retro-tap is not defined as-is. It doesn't need to be because (I think) you can make a behavior that emulates it. The exercise of doing so is left to the reader.
+Things like retro-tap and ZMK's `tap-unless-interrupted` are not defined as-is. They don't need to be because you can make behaviors that emulate them. The exercise of doing so is left to the reader.
 
 ## Tap dance
 
