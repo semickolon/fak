@@ -4,17 +4,27 @@ fs = import('fs')
 
 cc_args = ['--opt-code-size']
 inc_dirs = ['src', 'src/inc']
-sources = [
+
+sources_common = [
     'src/main.c',
     'src/time.c',
-    'src/keyboard.c',
+    'src/bootloader.c',
+]
+
+sources_c = [
     'src/usb.c',
+    'src/split_central.c',
     'src/keymap.c',
     'src/key_event_queue.c',
-    'src/bootloader.c',
-    'src/hold_tap.c',
-    'src/tap_dance.c',
+    # 'src/hold_tap.c',
+    # 'src/tap_dance.c',
 ]
+
+sources_p = [
+    'src/split_peripheral.c',
+]
+
+sources = sources_common + sources_p
 
 ###
 

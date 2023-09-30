@@ -27,21 +27,10 @@ let kn = fun num => kc."%{std.to_string num}" in
 
 [
   [
-    kc.Q, kc.W, kc.E, kc.R, kc.T,
-    kc.A, kc.S, kc.D, kc.F, kc.G,
-    kc.Z, kc.X, kc.C, kc.V, kc.B,
-              DF 1 & hold.reg.mod.lsft & hold.reg.behavior B0, TD0,
-  ],
-  [
-    kc.Y, kc.U, kc.I, kc.O, TD1,
-    kc.H, kc.J, kc.K, kc.L, kc.";",
-    kc.N, kc.M, kc.",", kc.".", kc."/" & hold.reg.mod.lsft & hold.reg.behavior B0,
-              DF 0 & hold.reg.mod.lsft & hold.reg.behavior B0, TD0,
-  ],
-  [
-    XX, kn 7, kn 8, kn 9, tap.trans,
-    XX, kn 4, kn 5, kn 6, _T,
-    XX, kn 1, kn 2, kn 3, tap.trans,
-                    kn 0, _T,
+    kc.Q, kc.W, kc.E, kc.R, kc.T,     kc.Y, kc.U, kc.I, kc.O, kc.P,
+    kc.A, kc.S, kc.D, kc.F, kc.G,     kc.H, kc.J, kc.K, kc.L, kc.";",
+    kc.Z, kc.X, kc.C, kc.V, kc.B,     kc.N, kc.M, kc.",", kc.".", kc."/",
+                      kc."1", kc."2",     kc."3", kc."4",
+    
   ]
 ]

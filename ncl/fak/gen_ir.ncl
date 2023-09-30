@@ -5,6 +5,8 @@ fun kb km =>
 let keycodes = std.array.flatten km in
 let layer_count = std.array.length km in
 
+let _side | [| 'self, 'central, 'peripheral |]= 'peripheral in
+
 let deep_keycodes = std.array.flat_map (fun kc => match {
   'hold_tap => [kc],
   'tap_dance => kc.data.bindings
@@ -92,6 +94,11 @@ let _defines = {
   KEY_COUNT = std.array.length kb.keys,
   LAYER_COUNT = layer_count,
   DEBOUNCE_MS = kb.debounce_ms,
+
+  SPLIT_ENABLE = _side != 'self,
+  SPLIT_SIDE_CENTRAL = _side != 'peripheral,
+  SPLIT_SIDE_PERIPHERAL = _side == 'peripheral,
+  SPLIT_PERIPH_KEY_COUNT = KEY_COUNT / 2,
 
   LAYER_TRANSPARENCY_ENABLE = std.array.any (fun kc => 
     kc.type == 'hold_tap
@@ -196,6 +203,7 @@ let rec _kscan | Kscan =
 } in
 
 {
+  side = _side,
   defines = _defines,
   kscan = _kscan,
   key_map = std.array.map (fun layer => std.array.map encode_kc layer) km,

@@ -1,4 +1,4 @@
-#include "keyboard.h"
+#include "split_central.h"
 #include "ch552.h"
 #include "usb.h"
 #include "time.h"
@@ -18,6 +18,10 @@
 
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
+
+#ifdef SPLIT_ENABLE
+extern __code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT];
+#endif
 
 uint16_t get_last_tap_timestamp() {
     return last_tap_timestamp;
@@ -256,17 +260,57 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
     }
 }
 
-void keyboard_init() {
-    for (uint8_t i = 0; i < KEY_COUNT; i++) {
-        key_states[i].status = 0;
+#ifdef SPLIT_ENABLE
+static void split_periph_init() {
+    SM0 = 1;
+    SM1 = 0;
+    PIN_FUNC |= bUART0_PIN_X;
+}
+
+static void split_periph_scan() {
+    SBUF = SPLIT_MSG_REQUEST_KEYS;
+    TB8 = 0;
+    while (!TI);
+    TI = 0;
+    REN = 1;
+
+    uint8_t i = 0;
+    uint8_t wait_cycles = 0;
+
+    for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES; b++) {
+        while (!RI) {
+            if (++wait_cycles == 0) goto exit;
+        }
+        RI = 0;
+
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            key_state_inform(split_periph_key_indices[i], (SBUF >> bit) & 1);
+            if (++i == SPLIT_PERIPH_KEY_COUNT) break;
+        }
     }
 
+exit:
+    REN = 0;
+}
+#endif
+
+void keyboard_init() {
+    for (uint8_t i = KEY_COUNT; i;) {
+        key_states[--i].status = 0;
+    }
+
+#ifdef SPLIT_ENABLE
+    split_periph_init();
+#endif
     key_event_queue_init();
     keyboard_init_user();
 }
 
 void keyboard_scan() {
     keyboard_scan_user();
+#ifdef SPLIT_ENABLE
+    split_periph_scan();
+#endif
     delay(DEBOUNCE_MS);
     handle_key_events();
 }

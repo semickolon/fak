@@ -1,5 +1,3 @@
-#ifdef TAP_DANCE_ENABLE
-
 #include "tap_dance.h"
 #include "keymap.h"
 
@@ -39,5 +37,3 @@ uint8_t tap_dance_handle_event(fak_key_state_t *ks, uint8_t handle_ev, int16_t d
     
     return HANDLE_RESULT_MAPPED;
 }
-
-#endif

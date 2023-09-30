@@ -43,27 +43,16 @@ let rec codegen = {
 } in
 
 let h_file = m%"
-  #ifndef __USER_H__
-  #define __USER_H__
+  %{codegen.defines ir.defines}
 
   #include "keyboard.h"
 
-  %{codegen.defines ir.defines}
-
   void keyboard_init_user();
   void keyboard_scan_user();
-
-  #endif // __USER_H__
 "% in
 
-let c_file =
-  let key_state_inform = fun key_idx in_pin_idx =>
-    "key_state_inform(%{std.to_string key_idx}, !IN%{std.to_string in_pin_idx});" in
-  let set_out_pin = fun high out_pin_idx =>
-    "OUT%{std.to_string out_pin_idx} = %{if high then "1" else "0"};" in
+let side_central_defs =
 m%"
-  #include "ch552.h"
-
   %{
     if layer_count > 1 then
       "__code uint32_t key_map[LAYER_COUNT][KEY_COUNT] = %{codegen.val.array ir.key_map};"
@@ -87,6 +76,17 @@ m%"
     else
       "// (No tap dance bindings)"
   }
+"% in
+
+let c_file =
+  let key_state_inform = fun key_idx in_pin_idx =>
+    "key_state_inform(%{std.to_string key_idx}, !IN%{std.to_string in_pin_idx});" in
+  let set_out_pin = fun high out_pin_idx =>
+    "OUT%{std.to_string out_pin_idx} = %{if high then "1" else "0"};" in
+m%"
+  #include "ch552.h"
+
+  %{if ir.side != 'peripheral then side_central_defs else ""}
 
   %{
     util.array.join "\n" (

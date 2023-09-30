@@ -23,9 +23,9 @@ let CH552T = {
     let D = DirectPinKey mcu in
     let M = MatrixKey matrix in
     [
-      M 0 0, M 1 0, M 2 0, M 3 0, M 4 0,
-      M 0 1, M 1 1, M 2 1, M 3 1, M 4 1,
-      M 0 2, M 1 2, M 2 2, M 3 2, M 4 2,
-                           M 3 3, M 4 3,
+      M 0 0, M 1 0, M 2 0, M 3 0, M 4 0,      M 0 0, M 0 0, M 0 0, M 0 0, M 0 0,
+      M 0 1, M 1 1, M 2 1, M 3 1, M 4 1,      M 0 0, M 0 0, M 0 0, M 0 0, M 0 0,
+      M 0 2, M 1 2, M 2 2, M 3 2, M 4 2,      M 0 0, M 0 0, M 0 0, M 0 0, M 0 0,
+                           M 3 3, M 4 3,      M 0 0, M 0 0,
     ]
 }
