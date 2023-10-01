@@ -28,6 +28,7 @@ cc = find_program('sdcc', required : true)
 objcopy = find_program('objcopy', required : true)
 nickel = find_program('nickel', required : true)
 jq = find_program('jq', required : true)
+wchisp = find_program('wchisp', required : false)
 
 ncl = custom_target('ncl',
     input : 'ncl/fak/main.ncl',
@@ -93,4 +94,16 @@ foreach side : sides
         install_dir: 'firmware',
         command : [objcopy, '-I', 'ihex', '-O', 'binary', '@INPUT@', '@OUTPUT@'],
     )
+
+    flash = run_target('flash_' + side,
+        command : [wchisp, 'flash', bin.full_path()],
+        depends : bin,
+    )
+
+    if side == 'central'
+        alias_target('flash', flash)
+        alias_target('flash_c', flash)
+    elif side == 'peripheral'
+        alias_target('flash_p', flash)
+    endif
 endforeach
