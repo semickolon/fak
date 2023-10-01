@@ -1,3 +1,5 @@
+#ifdef HOLD_TAP_ENABLE
+
 #include "hold_tap.h"
 #include "time.h"
 #include "usb.h"
@@ -233,3 +235,5 @@ uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t
 
     return 0;
 }
+
+#endif

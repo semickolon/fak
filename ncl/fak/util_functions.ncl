@@ -46,8 +46,14 @@ let rec _bit = {
   ),
 } in
 
+let rec _record = {
+  only_if | Bool -> Dyn -> Dyn =
+    fun cond record => if cond then record else {},
+} in
+
 {
   number = _number,
   array = _array,
   bit = _bit,
+  record = _record,
 }

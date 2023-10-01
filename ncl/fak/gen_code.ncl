@@ -54,10 +54,12 @@ let h_file = m%"
 let side_central_defs =
 m%"
   %{
-    if layer_count > 1 then
-      "__code uint32_t key_map[LAYER_COUNT][KEY_COUNT] = %{codegen.val.array ir.key_map};"
-    else
+    if layer_count == 0 then
+      "// (No layers. This must be peripheral side.)"
+    else if layer_count == 1 then
       "__code uint32_t key_map[KEY_COUNT] = %{codegen.val.array (std.array.at 0 ir.key_map)};"
+    else
+      "__code uint32_t key_map[LAYER_COUNT][KEY_COUNT] = %{codegen.val.array ir.key_map};"
   }
 
   %{
@@ -76,6 +78,13 @@ m%"
     else
       "// (No tap dance bindings)"
   }
+
+  %{
+    if std.array.length ir.split_periph_key_indices > 1 then
+      "__code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT] = %{codegen.val.array ir.split_periph_key_indices};"
+    else
+      "// (No split periph key indices)"
+  }
 "% in
 
 let c_file =
@@ -86,7 +95,7 @@ let c_file =
 m%"
   #include "ch552.h"
 
-  %{if ir.side != 'peripheral then side_central_defs else ""}
+  %{side_central_defs}
 
   %{
     util.array.join "\n" (

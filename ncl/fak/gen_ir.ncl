@@ -1,11 +1,9 @@
 let util = import "util_functions.ncl" in
 
-fun kb km =>
+fun kb km side =>
 
 let keycodes = std.array.flatten km in
 let layer_count = std.array.length km in
-
-let _side | [| 'self, 'central, 'peripheral |]= 'peripheral in
 
 let deep_keycodes = std.array.flat_map (fun kc => match {
   'hold_tap => [kc],
@@ -88,17 +86,10 @@ let encode_hold_tap_key_interrupts = fun key_interrupts =>
     (std.array.at 0 pair) + (util.bit.shift (util.array.at_or 1 0 pair) 4)
   ) (util.array.chunk 2 (std.array.map encode_hold_tap_key_interrupt key_interrupts)) in
 
-let record_if | Bool -> Dyn -> Dyn = fun condition record => if condition then record else {} in
-
-let _defines = {
+let _central_defines = {
   KEY_COUNT = std.array.length kb.keys,
   LAYER_COUNT = layer_count,
   DEBOUNCE_MS = kb.debounce_ms,
-
-  SPLIT_ENABLE = _side != 'self,
-  SPLIT_SIDE_CENTRAL = _side != 'peripheral,
-  SPLIT_SIDE_PERIPHERAL = _side == 'peripheral,
-  SPLIT_PERIPH_KEY_COUNT = KEY_COUNT / 2,
 
   LAYER_TRANSPARENCY_ENABLE = std.array.any (fun kc => 
     kc.type == 'hold_tap
@@ -134,10 +125,20 @@ let _defines = {
 
   XADDR_KEY_STATES = XADDR_USB_EP1I + USB_EP1_SIZE + USB_EP_PADDING,
   XADDR_KEY_EVENT_QUEUE = "(XADDR_KEY_STATES + sizeof(fak_key_state_t) * KEY_COUNT)",
-} & record_if (layer_count > 1) {
+} & util.record.only_if (layer_count > 1) {
   XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
   XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
 } in
+
+let _defines = {
+  SPLIT_ENABLE = side != 'self,
+  SPLIT_SIDE_CENTRAL = side != 'peripheral,
+  SPLIT_SIDE_PERIPHERAL = side == 'peripheral,
+} & util.record.only_if (side != 'self) {
+  SPLIT_PERIPH_KEY_COUNT =
+    (if side == 'central then kb.split.peripheral else kb).keys
+    |> std.array.length,
+} & util.record.only_if (side != 'peripheral) _central_defines in
 
 let encode_hold_tap_behavior = fun b => {
   flags =
@@ -146,11 +147,11 @@ let encode_hold_tap_behavior = fun b => {
     + (if b.global_quick_tap_ignore_consecutive then 8 else 0),
   timeout_ms = b.timeout_ms,
   key_interrupts = encode_hold_tap_key_interrupts b.key_interrupts,
-} & record_if _defines.HOLD_TAP_QUICK_TAP_ENABLE {
+} & util.record.only_if _defines.HOLD_TAP_QUICK_TAP_ENABLE {
   quick_tap_ms = b.quick_tap_ms
-} & record_if _defines.HOLD_TAP_QUICK_TAP_INTERRUPT_ENABLE {
+} & util.record.only_if _defines.HOLD_TAP_QUICK_TAP_INTERRUPT_ENABLE {
   quick_tap_interrupt_ms = b.quick_tap_interrupt_ms
-} & record_if _defines.HOLD_TAP_GLOBAL_QUICK_TAP_ENABLE {
+} & util.record.only_if _defines.HOLD_TAP_GLOBAL_QUICK_TAP_ENABLE {
   global_quick_tap_ms = b.global_quick_tap_ms
 } in
 
@@ -203,10 +204,22 @@ let rec _kscan | Kscan =
 } in
 
 {
-  side = _side,
   defines = _defines,
   kscan = _kscan,
-  key_map = std.array.map (fun layer => std.array.map encode_kc layer) km,
-  hold_tap_behaviors = std.array.map encode_hold_tap_behavior _hold_tap_behaviors,
-  tap_dance_bindings = std.array.map encode_kc (std.array.flatten _tap_dance_bindings),
+
+  key_map = if side == 'peripheral then [] else
+    std.array.map (fun layer => std.array.map encode_kc layer) km,
+
+  hold_tap_behaviors = if side == 'peripheral then [] else
+    std.array.map encode_hold_tap_behavior _hold_tap_behaviors,
+
+  tap_dance_bindings = if side == 'peripheral then [] else
+    std.array.map encode_kc (std.array.flatten _tap_dance_bindings),
+
+  split_periph_key_indices = 
+    if side != 'central then [] else
+      kb.keys
+      |> util.array.enumerate
+      |> std.array.filter (fun { index, value } => value.type == 'peripheral)
+      |> std.array.map (fun { index, value } => index)
 }
