@@ -20,14 +20,20 @@ Currently, it is only tested on the CH552T, but it should also work with CH552E/
 
 # Getting started
 
-Requirements: `jq`, `meson`, `nickel 1.2.1`, `sdcc`, `ninja`, and your CH55x flasher tool of choice
+Requirements:
+- [`jq`](https://github.com/jqlang/jq/releases/tag/jq-1.7)
+- [`meson`](https://mesonbuild.com/)
+- [`nickel` 1.2.1](https://github.com/tweag/nickel/releases/tag/1.2.1)
+- [`sdcc`](https://sourceforge.net/projects/sdcc/files)
+- [`ninja`](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
+- [`wchisp`](https://github.com/ch32-rs/wchisp/releases/tag/nightly)
+
 If you use Nix, you can simply use the provided flakes.
 
 1. Clone this repo
 1. Edit `ncl/keyboard.ncl` and `ncl/keymap.ncl`
 1. `meson setup build && cd build`
-1. `ninja`
-1. Flash `build/main.bin`
+1. `meson compile flash`
 
 # Features
 
@@ -127,8 +133,71 @@ td.make 200 [
 ]
 ```
 
+## Split support
+
+Central and peripheral sides are *fully independently* defined, so no considerations need to be made about symmetry, pin placement, and whatnot. They can be two entirely different keyboards connected together for all FAK cares.
+
+```
+# This is an example of how a 10-key "split macropad" would be defined in keyboard.ncl
+
+let { DirectPinKey, PeripheralSideKey, .. } = import "fak/keyboard.ncl" in
+let { CH552T, .. } = import "fak/mcus.ncl" in
+
+let D = DirectPinKey in
+let S = PeripheralSideKey in
+
+let side_periph = {
+  mcu = CH552T,
+  split.channel = CH552T.features.uart_30_31,
+  keys = [
+    D 13, D 14, D 15,
+    D 32, D 33, D 12,
+  ]
+} in
+
+# The central side has two fields that aren't in the peripheral: `split.peripheral` and `usb_dev`
+{
+  mcu = CH552T,
+  split.channel = CH552T.features.uart_12_13,
+  split.peripheral = side_periph,
+  usb_dev = {
+    # Nickel doesn't support hex literals yet
+    vendor_id = 2023,
+    product_id = 69,
+    product_ver = 420,
+  },
+  keys = [
+    D 14, D 15,   S 0, S 1, S 2,
+    D 30, D 11,   S 3, S 4, S 5,
+  ]
+}
+
+```
+
+Only if you have a split config, within your build directory, set the build option `split` to `true` like so: `meson configure -Dsplit=true` then use *any one* of the following commands to flash the central side:
+
+```
+meson compile flash
+meson compile flash_c
+meson compile flash_central
+```
+
+And the peripheral side:
+
+```
+meson compile flash_p
+meson compile flash_peripheral
+```
+
+Current limitations:
+- Only UART0 is supported. UART1 is not yet supported.
+- No bitbang implementation yet, which would allow for half-duplex single-wire comms on any[^2] pin at the cost of firmware size. Hardware UART is full-duplex two-wire and only available on certain pins.
+- Central and peripheral sides are fixed. That is, you can't plug it in on the peripheral side. Well, you can, but of course it won't work as a USB keyboard.
+
+[^2]: Almost any pin. USB data pins obviously won't work here.
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
 
-This project is still at its very early stages though, so some error cases won't be caught yet. Not yet 100% foolproof. Also, the error messages might not look very helpful in the meantime.
+This project is still at its very early stages though, so some error cases won't be caught yet. Not yet 100% foolproof. Also, the error messages don't look very helpful in the meantime.
