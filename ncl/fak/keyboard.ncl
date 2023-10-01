@@ -59,6 +59,7 @@ let KeyboardPeripheralSide = {
   mcu | Mcu,
   matrix | Matrix mcu | default = {},
   keys | Set (PhysicalKey mcu matrix),
+  # TODO: Check that this is a UART feature
   split.channel | ElementOf mcu.features,
 } in
 
@@ -69,6 +70,7 @@ let KeyboardCentralSide = {
   usb_dev | UsbDev,
   debounce_ms | Uint8 | default = DEFAULT_DEBOUNCE_MS,
   split | {
+    # TODO: Check that this is a UART feature
     channel | ElementOf mcu.features,
     peripheral | KeyboardPeripheralSide,
   } | optional,

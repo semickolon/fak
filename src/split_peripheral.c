@@ -20,8 +20,6 @@ void keyboard_init() {
     SM1 = 0;
     SM2 = 0;
     REN = 1;
-
-    // PIN_FUNC |= bUART0_PIN_X;
     ES = 1;
 
     keyboard_init_user();

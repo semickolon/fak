@@ -1,4 +1,5 @@
 let util = import "util_functions.ncl" in
+let { Set, .. } = import "util_types.ncl" in
 
 fun kb km side =>
 
@@ -9,6 +10,18 @@ let deep_keycodes = std.array.flat_map (fun kc => match {
   'hold_tap => [kc],
   'tap_dance => kc.data.bindings
 } kc.type) keycodes in
+
+let features_used =
+  if side == 'self then [] else [kb.split.channel]
+in
+
+let feature_pins_used = features_used
+  |> std.array.flat_map (fun feature => feature.pins)
+in
+
+let feature_keys_used | Set String = features_used
+  |> std.array.flat_map (fun feature => feature.keys)
+in
 
 let keycode_is_hold_tap = fun kc => 
   kc.type == 'hold_tap
@@ -134,6 +147,9 @@ let _defines = {
   SPLIT_ENABLE = side != 'self,
   SPLIT_SIDE_CENTRAL = side != 'peripheral,
   SPLIT_SIDE_PERIPHERAL = side == 'peripheral,
+
+  UART0_ALT = std.array.any ((==) "uart01") feature_keys_used,
+  UART1_ALT = std.array.any ((==) "uart11") feature_keys_used,
 } & util.record.only_if (side != 'self) {
   SPLIT_PERIPH_KEY_COUNT =
     (if side == 'central then kb.split.peripheral else kb).keys
@@ -158,7 +174,7 @@ let encode_hold_tap_behavior = fun b => {
 } in
 
 let Kscan = std.contract.from_predicate (fun k =>
-  let all_used_pins = k.ins @ k.outs in
+  let all_used_pins = k.ins @ k.outs @ feature_pins_used in
   (util.array.unique all_used_pins) == all_used_pins
 ) in
 

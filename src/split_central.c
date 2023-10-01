@@ -264,7 +264,6 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
 static void split_periph_init() {
     SM0 = 1;
     SM1 = 0;
-    PIN_FUNC |= bUART0_PIN_X;
 }
 
 static void split_periph_scan() {

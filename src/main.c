@@ -31,6 +31,13 @@ void main() {
 #endif
     keyboard_init();
 
+#ifdef UART0_ALT
+    PIN_FUNC |= bUART0_PIN_X;
+#endif
+#ifdef UART1_ALT
+    PIN_FUNC |= bUART1_PIN_X;
+#endif
+
     EA = 1;
 
     while (1) {
