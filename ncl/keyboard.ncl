@@ -16,16 +16,6 @@ let CH552T = {
       keys = ["uart0", "uart01"],
       pins = [12, 13],
     },
-    uart_16_17 = {
-      type = 'uart,
-      keys = ["uart1", "uart10"],
-      pins = [16, 17],
-    },
-    uart_34_32 = {
-      type = 'uart,
-      keys = ["uart1", "uart11"],
-      pins = [34, 32],
-    },
   },
 } in
 
@@ -35,6 +25,7 @@ let side_central = {
     cols = [14, 15, 16, 17, 10],
     rows = [35, 34, 33, 32]
   },
+  split.channel = CH552T.features.uart_12_13,
 } in
 
 let side_periph = {
@@ -60,6 +51,7 @@ side_central & {
     product_id = 0,
     product_ver = 42069,
   },
+  split.peripheral = side_periph,
   keys =
     let D = DirectPinKey in
     let M = MatrixKey in

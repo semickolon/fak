@@ -80,7 +80,7 @@ m%"
   }
 
   %{
-    if std.array.length ir.split_periph_key_indices > 1 then
+    if std.array.length ir.split_periph_key_indices > 0 then
       "__code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT] = %{codegen.val.array ir.split_periph_key_indices};"
     else
       "// (No split periph key indices)"

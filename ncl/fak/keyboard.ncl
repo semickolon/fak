@@ -50,8 +50,8 @@ let PhysicalKey = fun mcu matrix => {
       col | MatrixCol matrix,
       row | MatrixRow matrix,
     },
-    # TODO: Add foolproof check that's not slow
-    'peripheral => BoundedInt 0 255,
+    # Index validity check is performed in main.ncl
+    'peripheral => Uint8,
   } type
 } in
 

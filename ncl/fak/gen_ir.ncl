@@ -138,7 +138,9 @@ let _defines = {
   SPLIT_PERIPH_KEY_COUNT =
     (if side == 'central then kb.split.peripheral else kb).keys
     |> std.array.length,
-} & util.record.only_if (side != 'peripheral) _central_defines in
+} & util.record.only_if (side != 'peripheral)
+  _central_defines
+in
 
 let encode_hold_tap_behavior = fun b => {
   flags =
