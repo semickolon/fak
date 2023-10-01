@@ -171,7 +171,6 @@ let side_periph = {
     D 30, D 11,   S 3, S 4, S 5,
   ]
 }
-
 ```
 
 Only if you have a split config, within your build directory, set the build option `split` to `true` like so: `meson configure -Dsplit=true` then use *any one* of the following commands to flash the central side:
