@@ -19,7 +19,7 @@ let TD0 = td.make 200 [
   tap.custom.BOOT
 ] in
 
-let TD1 = td.make 320 [ kc.P, kc.Q, kc.R, kc.S ] in
+let TD1 = td.make 320 [ kc.T, tap.custom.media.NEXT_TRACK, tap.custom.fak.BOOT ] in
 
 let XX = tap.none & hold.none in
 let _T = tap.trans & hold.trans in
@@ -27,7 +27,7 @@ let kn = fun num => kc."%{std.to_string num}" in
 
 [
   [
-    kc.Q, kc.W, kc.E, kc.R, kc.T,     kc.Y, kc.U, kc.I, kc.O, TD1,
+    kc.Q, kc.W, kc.E, kc.R, TD1,      kc.Y, kc.U, kc.I, kc.O, kc.P,
     kc.A, kc.S, kc.D, kc.F, kc.G,     kc.H, kc.J, kc.K, kc.L, kc.";",
     kc.Z, kc.X, kc.C, kc.V, kc.B,     kc.N, kc.M, kc.",", kc.".", kc."/",
                     kc.ESC, kc.BSPC,  kc.SPC, kc.ENT,

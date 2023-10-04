@@ -32,10 +32,13 @@
 
 typedef struct {
     USB_CFG_DESCR cfg_descr;
-    USB_ITF_DESCR itf_descr;
-    USB_HID_DESCR hid_descr;
-    USB_ENDP_DESCR endp1_descr;
-    USB_ENDP_DESCR endp2_descr;
+    USB_ITF_DESCR itf_keyboard_descr;
+    USB_HID_DESCR hid_keyboard_descr;
+    USB_ENDP_DESCR endp1_in_descr;
+    USB_ENDP_DESCR endp1_out_descr;
+    USB_ITF_DESCR itf_consumer_descr;
+    USB_HID_DESCR hid_consumer_descr;
+    USB_ENDP_DESCR endp2_in_descr;
 } USB_CFG1_DESCR;
 
 __code uint8_t *p_usb_tx;
@@ -45,6 +48,10 @@ __bit usb_hid_protocol;
 __xdata __at(XADDR_USB_EP0) uint8_t EP0_buffer[USB_EP0_SIZE];
 __xdata __at(XADDR_USB_EP1O) uint8_t EP1O_buffer[USB_EP1_SIZE];
 __xdata __at(XADDR_USB_EP1I) uint8_t EP1I_buffer[USB_EP1_SIZE];
+
+#define USB_EP2_SIZE 8
+#define XADDR_USB_EP2 0xFF
+__xdata __at(XADDR_USB_EP2) uint16_t EP2I_buffer[USB_EP2_SIZE / 2];
 
 __code USB_DEV_DESCR USB_DEVICE_DESCR = {
     .bLength = sizeof(USB_DEV_DESCR),
@@ -73,13 +80,13 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bDescriptorType = USB_DESCR_TYP_CONFIG,
         .wTotalLengthL = LSB(sizeof(USB_CONFIG1_DESCR)),
         .wTotalLengthH = MSB(sizeof(USB_CONFIG1_DESCR)),
-        .bNumInterfaces = 1,
+        .bNumInterfaces = 2,
         .bConfigurationValue = 1,
         .iConfiguration = 0,
         .bmAttributes = (1 << 7),
         .bMaxPower = 50
     },
-    .itf_descr = {
+    .itf_keyboard_descr = {
         .bLength = sizeof(USB_ITF_DESCR),
         .bDescriptorType = USB_DESCR_TYP_INTERF,
         .bInterfaceNumber = 0,
@@ -90,7 +97,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bInterfaceProtocol = 1, // Keyboard
         .iInterface = 0
     },
-    .hid_descr = {
+    .hid_keyboard_descr = {
         .bLength = sizeof(USB_HID_DESCR),
         .bDescriptorType = USB_DESCR_TYP_HID,
         .bcdHIDL = 0x11,
@@ -101,7 +108,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .wDescriptorLengthL = LSB(sizeof(USB_HID_REPORT_DESCR)),
         .wDescriptorLengthH = MSB(sizeof(USB_HID_REPORT_DESCR))
     },
-    .endp1_descr = {
+    .endp1_in_descr = {
         .bLength = sizeof(USB_ENDP_DESCR),
         .bDescriptorType = USB_DESCR_TYP_ENDP,
         .bEndpointAddress = USB_ENDP_DIR_MASK | 1, // IN 1
@@ -110,13 +117,44 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .wMaxPacketSizeH = MSB(USB_EP1_SIZE),
         .bInterval = 1
     },
-    .endp2_descr = {
+    .endp1_out_descr = {
         .bLength = sizeof(USB_ENDP_DESCR),
         .bDescriptorType = USB_DESCR_TYP_ENDP,
         .bEndpointAddress = 1, // OUT 1
         .bmAttributes = USB_ENDP_TYPE_INTER,
         .wMaxPacketSizeL = LSB(USB_EP1_SIZE),
         .wMaxPacketSizeH = MSB(USB_EP1_SIZE),
+        .bInterval = 1
+    },
+    .itf_consumer_descr = {
+        .bLength = sizeof(USB_ITF_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_INTERF,
+        .bInterfaceNumber = 1,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 1,
+        .bInterfaceClass = USB_DEV_CLASS_HID,
+        .bInterfaceSubClass = 0,
+        .bInterfaceProtocol = 0,
+        .iInterface = 0
+    },
+    .hid_consumer_descr = {
+        .bLength = sizeof(USB_HID_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_HID,
+        .bcdHIDL = 0x11,
+        .bcdHIDH = 0x01,
+        .bCountryCode = 0,
+        .bNumDescriptors = 1,
+        .bDescriptorTypeX = USB_DESCR_TYP_REPORT,
+        .wDescriptorLengthL = LSB(sizeof(USB_HID_CONSUMER_REPORT_DESCR)),
+        .wDescriptorLengthH = MSB(sizeof(USB_HID_CONSUMER_REPORT_DESCR))
+    },
+    .endp2_in_descr = {
+        .bLength = sizeof(USB_ENDP_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_ENDP,
+        .bEndpointAddress = USB_ENDP_DIR_MASK | 2, // IN 2
+        .bmAttributes = USB_ENDP_TYPE_INTER,
+        .wMaxPacketSizeL = LSB(USB_EP2_SIZE),
+        .wMaxPacketSizeH = MSB(USB_EP2_SIZE),
         .bInterval = 1
     }
 };
@@ -153,6 +191,19 @@ __code uint8_t USB_HID_REPORT_DESCR[] = {
     0x19, 0x00,
     0x29, 0x65,
     0x81, 0x00,
+    0xC0
+};
+
+__code uint8_t USB_HID_CONSUMER_REPORT_DESCR[] = {
+    0x05, 0x0C,                     // Usage Page (Consumer Devices)
+    0x09, 0x01,                     // Usage (Consumer Control)
+    0xA1, 0x01,                     // Collection (Application)
+    0x75, 0x10,                     //      Report Size (16)
+    0x95, 0x04,                     //      Report Count (4)
+    0x26, 0xFF, 0x03,               //      Logical Maximum (1023)
+    0x19, 0x00,                     //      Usage Minimum (0)
+    0x2A, 0xFF, 0x03,               //      Usage Maximum (1023)
+    0x81, 0x00,                     //      Input (Data, Ary, Abs)
     0xC0
 };
 
@@ -244,8 +295,16 @@ inline static void USB_EP0_SETUP() {
                     break;
 #endif
                 case USB_DESCR_TYP_REPORT:
-                    usb_tx_len = sizeof(USB_HID_REPORT_DESCR);
-                    p_usb_tx = (__code uint8_t *) &USB_HID_REPORT_DESCR;
+                    switch (setupPacket->wIndexL) {
+                        case 0:
+                            usb_tx_len = sizeof(USB_HID_REPORT_DESCR);
+                            p_usb_tx = (__code uint8_t *) &USB_HID_REPORT_DESCR;
+                            break;
+                        case 1:
+                            usb_tx_len = sizeof(USB_HID_CONSUMER_REPORT_DESCR);
+                            p_usb_tx = (__code uint8_t *) &USB_HID_CONSUMER_REPORT_DESCR;
+                            break;
+                    }
                     break;
             }
 
@@ -351,6 +410,19 @@ inline static void USB_EP1_IN() {
 
 inline static void USB_EP1_OUT() {}
 
+void USB_EP2I_write_now(uint8_t idx, uint16_t value) {
+    IE_USB = 0;
+    EP2I_buffer[idx] = value;
+    IE_USB = 1;
+
+    UEP2_CTRL = UEP2_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_ACK;
+    while (!(UEP2_CTRL & UEP_T_RES_NAK));
+}
+
+inline static void USB_EP2_IN() {
+    UEP2_CTRL = UEP2_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_NAK;
+}
+
 #pragma save
 #pragma nooverlay
 void USB_interrupt() {
@@ -367,6 +439,7 @@ void USB_interrupt() {
                 switch (endp) {
                     case 0: USB_EP0_IN(); break;
                     case 1: USB_EP1_IN(); break;
+                    case 2: USB_EP2_IN(); break;
                 }
                 break;
             
@@ -389,10 +462,12 @@ void USB_init() {
     USB_CTRL &= ~bUC_CLR_ALL;
 
     // Flush endpoints
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 8; i;) {
+        i--;
         EP0_buffer[i] = 0;
         EP1I_buffer[i] = 0;
         EP1O_buffer[i] = 0;
+        EP2I_buffer[i / 2] = 0;
     }
 
     usb_tx_len = 0;
@@ -409,6 +484,11 @@ void USB_init() {
     UEP1_DMA = XADDR_USB_EP1;
     UEP1_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_ACK;
     UEP4_1_MOD = bUEP1_RX_EN | bUEP1_TX_EN;
+
+    UEP2_T_LEN = USB_EP2_SIZE;
+    UEP2_DMA = XADDR_USB_EP2;
+    UEP2_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
+    UEP2_3_MOD = bUEP2_TX_EN;
 
     USB_INT_EN = bUIE_TRANSFER;
     IE_USB = 1;

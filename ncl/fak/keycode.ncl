@@ -33,8 +33,19 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
       TG = fun i => K i 'tog,
       TO = fun i => K i 'to,
     },
-    custom = let K = fun x => K 'custom { custom_code = x } in {
-      BOOT = K 1,
+    custom = let K = fun type code => K 'custom { custom_code = type + util.bit.shift code 3 } in {
+      fak = let K = fun code => K 0 code in {
+        RESET = K 0,
+        BOOT = K 1,
+      },
+      media = let K = fun code => K 1 code in {
+        PLAY_PAUSE = K 205,
+        MUTE = K 226,
+        VOL_UP = K 233,
+        VOL_DOWN = K 234,
+        NEXT_TRACK = K 181,
+        PREV_TRACK = K 182,
+      }
     },
     trans = K 'transparent {},
   },

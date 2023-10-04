@@ -227,8 +227,22 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 #endif
     
     case 0xE0: // Custom keycode
-        // TODO: Parse 13 bits
-        if (tap_code == 0xE1) bootloader();
+        {}
+        uint8_t custom_type = key_code & 0x07; // 3 bits
+        uint16_t custom_code = (tap_mods << 2) | ((key_code & 0x18) >> 3); // 10 bits
+
+        switch (custom_type) {
+        case 0: // FAK-specific
+            if      (custom_code == 0) sw_reset();
+            else if (custom_code == 1) bootloader();
+            break;
+        case 1: // Consumer
+            USB_EP2I_write_now(0, down ? custom_code : 0);
+            break;
+        case 2: // User-defined
+            break;
+        }
+
         break;
     
     default:

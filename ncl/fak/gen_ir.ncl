@@ -54,7 +54,7 @@ let encode_tappable = fun { type, data } => match {
     let op = match { 'df => 0, 'tog => 1, 'to => 2 } data.operation in
     192 + data.layer + util.bit.shift op 8,
   'custom =>
-    let m = util.bit.shift (util.bit.shift data.custom_code (-8)) 8 in
+    let m = util.bit.shift (util.bit.shift data.custom_code (-5)) 5 in
     224 + data.custom_code - m + util.bit.shift m 3,
   'transparent => 65535
 } type in

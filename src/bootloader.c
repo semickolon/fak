@@ -8,3 +8,9 @@ inline void bootloader() {
     delay(1);
     ((void (*__data)(void)) BOOT_ADDR)();
 }
+
+inline void sw_reset() {
+    SAFE_MOD = 0x55;
+    SAFE_MOD = 0xAA;
+    GLOBAL_CFG |= bSW_RESET;
+}

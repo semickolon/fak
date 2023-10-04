@@ -197,6 +197,6 @@ Current limitations:
 
 ## Foolproof config
 
-If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
+If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
 
 This project is still at its very early stages though, so some error cases won't be caught yet. Not yet 100% foolproof. Also, the error messages don't look very helpful in the meantime.
