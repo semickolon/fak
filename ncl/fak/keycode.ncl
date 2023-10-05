@@ -33,12 +33,12 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
       TG = fun i => K i 'tog,
       TO = fun i => K i 'to,
     },
-    custom = let K = fun type code => K 'custom { custom_code = type + util.bit.shift code 3 } in {
-      fak = let K = fun code => K 0 code in {
+    custom = let K = fun t c => K 'custom { type = t, code = c } in {
+      fak = let K = fun code => K 'fak code in {
         RESET = K 0,
         BOOT = K 1,
       },
-      media = let K = fun code => K 1 code in {
+      media = let K = fun code => K 'consumer code in {
         PLAY_PAUSE = K 205,
         MUTE = K 226,
         VOL_UP = K 233,

@@ -54,8 +54,12 @@ let encode_tappable = fun { type, data } => match {
     let op = match { 'df => 0, 'tog => 1, 'to => 2 } data.operation in
     192 + data.layer + util.bit.shift op 8,
   'custom =>
-    let m = util.bit.shift (util.bit.shift data.custom_code (-5)) 5 in
-    224 + data.custom_code - m + util.bit.shift m 3,
+    let m = util.bit.shift (util.bit.shift data.code (-2)) 2 in
+    224 + util.bit.shift (data.code - m) 3 + util.bit.shift m 6 + match {
+      'fak => 0,
+      'consumer => 1,
+      'user => 2
+    } data.type,
   'transparent => 65535
 } type in
 
@@ -99,6 +103,13 @@ let encode_hold_tap_key_interrupts = fun key_interrupts =>
     (std.array.at 0 pair) + (util.bit.shift (util.array.at_or 1 0 pair) 4)
   ) (util.array.chunk 2 (std.array.map encode_hold_tap_key_interrupt key_interrupts)) in
 
+let consumer_keys_enable = deep_keycodes
+  |> std.array.any (fun kc => 
+      kc.type == 'hold_tap
+      && kc.data.tap.type == 'custom
+      && kc.data.tap.data.type == 'consumer)
+in
+
 let _central_defines = {
   KEY_COUNT = std.array.length kb.keys,
   LAYER_COUNT = layer_count,
@@ -117,6 +128,7 @@ let _central_defines = {
   HOLD_TAP_GLOBAL_QUICK_TAP_IGNORE_CONSECUTIVE_ENABLE = std.array.any (fun b => b.global_quick_tap_ignore_consecutive) _hold_tap_behaviors,
 
   TAP_DANCE_ENABLE = std.array.any (fun kc => kc.type == 'tap_dance) keycodes,
+  CONSUMER_KEYS_ENABLE = consumer_keys_enable,
 
   USB_VENDOR_ID = kb.usb_dev.vendor_id,
   USB_PRODUCT_ID = kb.usb_dev.product_id,
@@ -124,11 +136,13 @@ let _central_defines = {
 
   USB_EP0_SIZE = 8,
   USB_EP1_SIZE = 8,
+  USB_EP2_SIZE = 8,
   USB_EP_PADDING = 2,
   KEY_EVENT_QUEUE_LEN = 32,
 
   XADDR_USB_EP0 = 0,
-  XADDR_USB_EP1 = XADDR_USB_EP0 + USB_EP0_SIZE + USB_EP_PADDING,
+  XADDR_USB_EP2 = XADDR_USB_EP0 + USB_EP0_SIZE + USB_EP_PADDING,
+  XADDR_USB_EP1 = XADDR_USB_EP2 + USB_EP2_SIZE + USB_EP_PADDING,
   XADDR_USB_EP1O = XADDR_USB_EP1,
   XADDR_USB_TX_LEN = XADDR_USB_EP1 + USB_EP1_SIZE + USB_EP_PADDING,
   XADDR_USB_EP1I = XADDR_USB_EP1 + 64,

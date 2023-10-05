@@ -36,9 +36,11 @@ typedef struct {
     USB_HID_DESCR hid_keyboard_descr;
     USB_ENDP_DESCR endp1_in_descr;
     USB_ENDP_DESCR endp1_out_descr;
+#ifdef CONSUMER_KEYS_ENABLE
     USB_ITF_DESCR itf_consumer_descr;
     USB_HID_DESCR hid_consumer_descr;
     USB_ENDP_DESCR endp2_in_descr;
+#endif
 } USB_CFG1_DESCR;
 
 __code uint8_t *p_usb_tx;
@@ -49,9 +51,9 @@ __xdata __at(XADDR_USB_EP0) uint8_t EP0_buffer[USB_EP0_SIZE];
 __xdata __at(XADDR_USB_EP1O) uint8_t EP1O_buffer[USB_EP1_SIZE];
 __xdata __at(XADDR_USB_EP1I) uint8_t EP1I_buffer[USB_EP1_SIZE];
 
-#define USB_EP2_SIZE 8
-#define XADDR_USB_EP2 0xFF
+#ifdef CONSUMER_KEYS_ENABLE
 __xdata __at(XADDR_USB_EP2) uint16_t EP2I_buffer[USB_EP2_SIZE / 2];
+#endif
 
 __code USB_DEV_DESCR USB_DEVICE_DESCR = {
     .bLength = sizeof(USB_DEV_DESCR),
@@ -126,6 +128,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .wMaxPacketSizeH = MSB(USB_EP1_SIZE),
         .bInterval = 1
     },
+#ifdef CONSUMER_KEYS_ENABLE
     .itf_consumer_descr = {
         .bLength = sizeof(USB_ITF_DESCR),
         .bDescriptorType = USB_DESCR_TYP_INTERF,
@@ -157,6 +160,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .wMaxPacketSizeH = MSB(USB_EP2_SIZE),
         .bInterval = 1
     }
+#endif
 };
 
 __code uint8_t USB_HID_REPORT_DESCR[] = {
@@ -194,6 +198,7 @@ __code uint8_t USB_HID_REPORT_DESCR[] = {
     0xC0
 };
 
+#ifdef CONSUMER_KEYS_ENABLE
 __code uint8_t USB_HID_CONSUMER_REPORT_DESCR[] = {
     0x05, 0x0C,                     // Usage Page (Consumer Devices)
     0x09, 0x01,                     // Usage (Consumer Control)
@@ -206,6 +211,7 @@ __code uint8_t USB_HID_CONSUMER_REPORT_DESCR[] = {
     0x81, 0x00,                     //      Input (Data, Ary, Abs)
     0xC0
 };
+#endif
 
 #ifdef USB_STRINGS_ENABLE
 __code uint8_t USB_STR0_DESCR[] = {
@@ -296,14 +302,16 @@ inline static void USB_EP0_SETUP() {
 #endif
                 case USB_DESCR_TYP_REPORT:
                     switch (setupPacket->wIndexL) {
-                        case 0:
-                            usb_tx_len = sizeof(USB_HID_REPORT_DESCR);
-                            p_usb_tx = (__code uint8_t *) &USB_HID_REPORT_DESCR;
-                            break;
-                        case 1:
-                            usb_tx_len = sizeof(USB_HID_CONSUMER_REPORT_DESCR);
-                            p_usb_tx = (__code uint8_t *) &USB_HID_CONSUMER_REPORT_DESCR;
-                            break;
+                    case 0:
+                        usb_tx_len = sizeof(USB_HID_REPORT_DESCR);
+                        p_usb_tx = (__code uint8_t *) &USB_HID_REPORT_DESCR;
+                        break;
+#ifdef CONSUMER_KEYS_ENABLE
+                    case 1:
+                        usb_tx_len = sizeof(USB_HID_CONSUMER_REPORT_DESCR);
+                        p_usb_tx = (__code uint8_t *) &USB_HID_CONSUMER_REPORT_DESCR;
+                        break;
+#endif
                     }
                     break;
             }
@@ -410,6 +418,7 @@ inline static void USB_EP1_IN() {
 
 inline static void USB_EP1_OUT() {}
 
+#ifdef CONSUMER_KEYS_ENABLE
 void USB_EP2I_write_now(uint8_t idx, uint16_t value) {
     IE_USB = 0;
     EP2I_buffer[idx] = value;
@@ -422,6 +431,7 @@ void USB_EP2I_write_now(uint8_t idx, uint16_t value) {
 inline static void USB_EP2_IN() {
     UEP2_CTRL = UEP2_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_NAK;
 }
+#endif
 
 #pragma save
 #pragma nooverlay
@@ -439,7 +449,9 @@ void USB_interrupt() {
                 switch (endp) {
                     case 0: USB_EP0_IN(); break;
                     case 1: USB_EP1_IN(); break;
+#ifdef CONSUMER_KEYS_ENABLE
                     case 2: USB_EP2_IN(); break;
+#endif
                 }
                 break;
             
@@ -485,10 +497,12 @@ void USB_init() {
     UEP1_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_ACK;
     UEP4_1_MOD = bUEP1_RX_EN | bUEP1_TX_EN;
 
+#ifdef CONSUMER_KEYS_ENABLE
     UEP2_T_LEN = USB_EP2_SIZE;
     UEP2_DMA = XADDR_USB_EP2;
     UEP2_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
     UEP2_3_MOD = bUEP2_TX_EN;
+#endif
 
     USB_INT_EN = bUIE_TRANSFER;
     IE_USB = 1;
