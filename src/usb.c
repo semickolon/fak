@@ -82,7 +82,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bDescriptorType = USB_DESCR_TYP_CONFIG,
         .wTotalLengthL = LSB(sizeof(USB_CONFIG1_DESCR)),
         .wTotalLengthH = MSB(sizeof(USB_CONFIG1_DESCR)),
-        .bNumInterfaces = 2,
+        .bNumInterfaces = USB_NUM_INTERFACES,
         .bConfigurationValue = 1,
         .iConfiguration = 0,
         .bmAttributes = (1 << 7),
@@ -479,7 +479,9 @@ void USB_init() {
         EP0_buffer[i] = 0;
         EP1I_buffer[i] = 0;
         EP1O_buffer[i] = 0;
+#ifdef CONSUMER_KEYS_ENABLE
         EP2I_buffer[i / 2] = 0;
+#endif
     }
 
     usb_tx_len = 0;

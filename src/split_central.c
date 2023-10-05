@@ -226,24 +226,31 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
         break;
 #endif
     
+#ifdef CUSTOM_KEYS_ENABLE
     case 0xE0: // Custom keycode
         {}
         uint8_t custom_type = key_code & 0x07; // 3 bits
         uint16_t custom_code = (tap_mods << 2) | ((key_code & 0x18) >> 3); // 10 bits
 
         switch (custom_type) {
+#ifdef FAK_KEYS_ENABLE
         case 0: // FAK-specific
             if      (custom_code == 0) sw_reset();
             else if (custom_code == 1) bootloader();
             break;
+#endif
+#ifdef CONSUMER_KEYS_ENABLE
         case 1: // Consumer
             USB_EP2I_write_now(0, down ? custom_code : 0);
             break;
+#endif
+#ifdef USER_KEYS_ENABLE
         case 2: // User-defined
             break;
+#endif
         }
-
         break;
+#endif
     
     default:
         if (tap_mods) register_mods(tap_mods, down);

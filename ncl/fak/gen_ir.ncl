@@ -103,11 +103,20 @@ let encode_hold_tap_key_interrupts = fun key_interrupts =>
     (std.array.at 0 pair) + (util.bit.shift (util.array.at_or 1 0 pair) 4)
   ) (util.array.chunk 2 (std.array.map encode_hold_tap_key_interrupt key_interrupts)) in
 
-let consumer_keys_enable = deep_keycodes
+
+let is_custom_keys_used =
+  deep_keycodes
+  |> std.array.any (fun kc => 
+      kc.type == 'hold_tap
+      && kc.data.tap.type == 'custom)
+in
+
+let is_custom_keys_of_type_used = fun type =>
+  deep_keycodes
   |> std.array.any (fun kc => 
       kc.type == 'hold_tap
       && kc.data.tap.type == 'custom
-      && kc.data.tap.data.type == 'consumer)
+      && kc.data.tap.data.type == type)
 in
 
 let _central_defines = {
@@ -128,7 +137,15 @@ let _central_defines = {
   HOLD_TAP_GLOBAL_QUICK_TAP_IGNORE_CONSECUTIVE_ENABLE = std.array.any (fun b => b.global_quick_tap_ignore_consecutive) _hold_tap_behaviors,
 
   TAP_DANCE_ENABLE = std.array.any (fun kc => kc.type == 'tap_dance) keycodes,
-  CONSUMER_KEYS_ENABLE = consumer_keys_enable,
+
+  CUSTOM_KEYS_ENABLE = is_custom_keys_used,
+  FAK_KEYS_ENABLE = is_custom_keys_of_type_used 'fak,
+  CONSUMER_KEYS_ENABLE = is_custom_keys_of_type_used 'consumer,
+  USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
+
+  USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE]
+    |> std.array.filter ((==) true)
+    |> std.array.length,
 
   USB_VENDOR_ID = kb.usb_dev.vendor_id,
   USB_PRODUCT_ID = kb.usb_dev.product_id,

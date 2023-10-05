@@ -19,7 +19,7 @@ let TD0 = td.make 200 [
   tap.custom.BOOT
 ] in
 
-let TD1 = td.make 320 [ kc.T, tap.custom.media.NEXT_TRACK, tap.custom.fak.BOOT ] in
+let TD1 = td.make 320 [ kc.T, tap.custom.media.PLAY_PAUSE, tap.custom.fak.BOOT ] in
 
 let XX = tap.none & hold.none in
 let _T = tap.trans & hold.trans in
