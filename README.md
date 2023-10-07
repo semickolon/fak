@@ -157,7 +157,8 @@ let side_periph = {
   ]
 } in
 
-# The central side has two fields that aren't in the peripheral: `split.peripheral` and `usb_dev`
+# The central side has two fields that aren't in the peripheral:
+# `split.peripheral` and `usb_dev`
 {
   mcu = CH552T,
   split.channel = CH552T.features.uart_12_13,
@@ -204,15 +205,15 @@ Combos are implemented as *virtual keys*. They're like regular keys but they are
 ```
 let kc = tap.reg.kc in
 let mod = hold.reg.mod in
-let my_tap_dance = td.make 200 [kc.SPC, kc.ENT] in
+let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 {
-  virtual_keys = {
+  virtual_keys = [
     # The first argument is the timeout_ms (up to 255)
     # The second argument is the key indices/positions (min 2, max 8)
     combo.make 50 [2, 3],
     combo.make 30 [2, 5, 6],
     # You can't use virtual key indices. Just physical keys.
-  },
+  ],
   # Assuming a 6-key macropad + 2 virtual keys, our layers need to have 8 keycodes.
   layers = [
     [
