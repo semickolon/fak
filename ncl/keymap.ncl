@@ -30,7 +30,7 @@ let kn = fun num => kc."%{std.to_string num}" in
     combo.make 255 [2, 3],
     combo.make 30 [3, 4],
     combo.make 30 [2, 4],
-    combo.make 50 [12, 13, 14],
+    combo.make 50 [12, 13, 16, 17],
   ],
   layers = [
     [

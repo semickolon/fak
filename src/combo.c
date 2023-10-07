@@ -20,6 +20,7 @@ typedef struct {
 } fak_combo_key_queue_t;
 
 extern __code fak_combo_def_t combo_defs[COMBO_COUNT];
+// TODO: Get rid of this hardcoded address
 __xdata __at(0x200) fak_combo_state_t combo_states[COMBO_COUNT];
 __xdata __at(0x200 + sizeof(combo_states)) fak_combo_key_queue_t combo_key_queue;
 

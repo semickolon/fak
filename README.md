@@ -71,14 +71,16 @@ Either one or both of the tap and hold portions can be transparent. Full transpa
 ```
 let kc = tap.reg.kc in
 let mod = hold.reg.mod in
-[
-  [ # Layer 0
-    kc.A & mod.lctl,       kc.B & mod.lsft,    kc.C & mod.lalt,         hold.reg.layer 1
-  ],
-  [ # Layer 1
-    tap.trans & mod.lsft,  kc.J & hold.trans,  tap.trans & hold.trans,  tap.trans & hold.trans
+{
+  layers = [
+    [ # Layer 0
+      kc.A & mod.lctl,       kc.B & mod.lsft,    kc.C & mod.lalt,         hold.reg.layer 1
+    ],
+    [ # Layer 1
+      tap.trans & mod.lsft,  kc.J & hold.trans,  tap.trans & hold.trans,  tap.trans & hold.trans
+    ]
   ]
-]
+}
 ```
 
 ## Complex hold-tap behaviors
@@ -194,6 +196,45 @@ Current limitations:
 - Central and peripheral sides are fixed. That is, you can't plug it in on the peripheral side. Well, you can, but of course it won't work as a USB keyboard.
 
 [^2]: Almost any pin. USB data pins obviously won't work here.
+
+## Combos
+
+Combos are implemented as *virtual keys*. They're like regular keys but they are activated by pressing multiple physical keys at the same time. And since they're like regular keys, they're just like any other key in your keymap with full support for all the features. They can even have different keycodes across layers.
+
+```
+let kc = tap.reg.kc in
+let mod = hold.reg.mod in
+let my_tap_dance = td.make 200 [kc.SPC, kc.ENT] in
+{
+  virtual_keys = {
+    # The first argument is the timeout_ms (up to 255)
+    # The second argument is the key indices/positions (min 2, max 8)
+    combo.make 50 [2, 3],
+    combo.make 30 [2, 5, 6],
+    # You can't use virtual key indices. Just physical keys.
+  },
+  # Assuming a 6-key macropad + 2 virtual keys, our layers need to have 8 keycodes.
+  layers = [
+    [
+      kc.A, kc.B, kc.C,
+      kc.D, kc.E, kc.F,
+      # After physical keycodes, our virtual keycodes begin:
+      kc.N1 & mod.lctl,
+      kc.N2 & mod.lalt,
+    ],
+    [
+      kc.G, kc.H, kc.I,
+      kc.J, kc.K, kc.L,
+      # Like physical keys, they can be different across layers and use transparency
+      my_tap_dance,
+      tap.trans & mod.lgui,
+    ],
+  ],
+}
+```
+
+Current limitations:
+- Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos are supported though, as shown in the example above.
 
 ## Foolproof config
 
