@@ -85,6 +85,17 @@ m%"
     else
       "// (No split periph key indices)"
   }
+
+  %{
+    if std.array.length ir.combo_defs > 0 then
+      m%"
+        #include "combo.h"
+        __code fak_combo_def_t combo_defs[COMBO_COUNT] = %{codegen.val.array ir.combo_defs};
+      "%
+    else
+      "// (No combo defs)"
+  }
+
 "% in
 
 let c_file =

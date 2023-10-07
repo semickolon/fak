@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-#define COMBO_COUNT 3
-#define COMBO_KEY_QUEUE_LEN 4
-#define COMBO_MAX_KEY_COUNT 2
-#define COMBO_KEY_IDX_START 5
-
 typedef struct {
     uint8_t key_count;
     uint8_t timeout_ms;

@@ -3,13 +3,17 @@ let { Set, .. } = import "util_types.ncl" in
 
 fun kb km side =>
 
-let keycodes = std.array.flatten km in
-let layer_count = std.array.length km in
+let keycodes = std.array.flatten km.layers in
+let layer_count = std.array.length km.layers in
 
 let deep_keycodes = std.array.flat_map (fun kc => match {
   'hold_tap => [kc],
   'tap_dance => kc.data.bindings
 } kc.type) keycodes in
+
+let combos = km.virtual_keys
+  |> std.array.filter (fun { type, .. } => type == 'combo)
+in
 
 let features_used =
   if side == 'self then [] else [kb.split.channel]
@@ -120,7 +124,7 @@ let is_custom_keys_of_type_used = fun type =>
 in
 
 let _central_defines = {
-  KEY_COUNT = std.array.length kb.keys,
+  KEY_COUNT = std.array.length kb.keys + std.array.length km.virtual_keys,
   LAYER_COUNT = layer_count,
   DEBOUNCE_MS = kb.debounce_ms,
 
@@ -172,6 +176,17 @@ let _central_defines = {
 } & util.record.only_if (layer_count > 1) {
   XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
   XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
+} & util.record.only_if (std.array.length combos > 1) {
+  COMBO_COUNT = std.array.length combos,
+  COMBO_KEY_QUEUE_LEN = combos
+    |> std.array.map (fun c => c.data.key_indices)
+    |> std.array.reduce_left (@)
+    |> util.array.unique
+    |> std.array.length,
+  COMBO_MAX_KEY_COUNT = combos
+    |> std.array.map (fun c => c.data.key_count)
+    |> util.array.max,
+  COMBO_KEY_IDX_START = std.array.length kb.keys,
 } in
 
 let _defines = {
@@ -257,13 +272,16 @@ let rec _kscan | Kscan =
   kscan = _kscan,
 
   key_map = if side == 'peripheral then [] else
-    std.array.map (fun layer => std.array.map encode_kc layer) km,
+    std.array.map (fun layer => std.array.map encode_kc layer) km.layers,
 
   hold_tap_behaviors = if side == 'peripheral then [] else
     std.array.map encode_hold_tap_behavior _hold_tap_behaviors,
 
   tap_dance_bindings = if side == 'peripheral then [] else
     std.array.map encode_kc (std.array.flatten _tap_dance_bindings),
+  
+  combo_defs = if side == 'peripheral then [] else
+    std.array.map (fun c => c.data) combos,
 
   split_periph_key_indices = 
     if side != 'central then [] else

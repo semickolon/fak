@@ -16,6 +16,7 @@ sources_central = [
     'src/key_event_queue.c',
     'src/hold_tap.c',
     'src/tap_dance.c',
+    'src/combo.c',
 ]
 
 sources_peripheral = [

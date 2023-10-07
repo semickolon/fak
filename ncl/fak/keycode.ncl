@@ -72,6 +72,16 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
       }
     }
   },
+
+  combo = {
+    make = fun t k => {
+      type = 'combo,
+      data = {
+        timeout_ms = t,
+        key_indices = k,
+      },
+    }
+  },
   
   MO = fun i => hold.reg.layer i,
   LT = fun b i tap => hold.reg.behavior b & hold.reg.layer i & tap,

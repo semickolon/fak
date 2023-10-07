@@ -1,5 +1,5 @@
 let { MAX_LAYER_COUNT, .. } = import "constants.ncl" in
-let { Uint, Uint8, Uint16, BoundedInt, .. } = import "util_types.ncl" in
+let { Uint, Uint8, Uint16, BoundedInt, Set, .. } = import "util_types.ncl" in
 
 let Uint13 = Uint 13 in
 
@@ -16,7 +16,12 @@ let Modifiers = {
   right_gui | Bool | default = false,
 } in
 
-let LayerIndex = BoundedInt 0 (std.array.length km) in
+let physical_key_count = std.array.length kb.keys in
+let virtual_key_count = std.array.length km.virtual_keys in
+let key_count = physical_key_count + virtual_key_count in
+
+let LayerIndex = BoundedInt 0 (std.array.length km.layers) in
+let PhysicalKeyIndex = BoundedInt 0 physical_key_count in
 
 let HoldTapKeyInterrupt = {
   decision | [| 'none, 'hold, 'tap |] | default = 'none,
@@ -25,13 +30,13 @@ let HoldTapKeyInterrupt = {
 
 let HoldTapKeyInterrupts = (
   let ValidLength = std.contract.from_predicate (fun ints =>
-    (std.array.length ints) == (std.array.length kb.keys)
+    (std.array.length ints) == key_count
   ) in
   std.contract.Sequence [ Array HoldTapKeyInterrupt, ValidLength ]
 ) in
 
 let HoldTapBehavior = let
-  default_key_interrupts = std.array.replicate (std.array.length kb.keys) {}
+  default_key_interrupts = std.array.replicate key_count {}
 in {
   timeout_decision | [| 'hold, 'tap |] | default = 'hold,
   timeout_ms | Uint16 | default = 200,
@@ -103,15 +108,41 @@ let rec Keycode = {
 
 let Layer = (
   let ValidLength = std.contract.from_predicate (fun layer =>
-    (std.array.length layer) == (std.array.length kb.keys)
+    (std.array.length layer) == key_count
   ) in
   std.contract.Sequence [ Array Keycode, ValidLength ]
 ) in
 
+let Layers = 
+  let ValidLength = std.contract.from_predicate (fun layers =>
+    let len = std.array.length layers in len > 0 && len <= MAX_LAYER_COUNT
+  ) in
+  std.contract.Sequence [ Array Layer, ValidLength ]
+in
+
+let ComboKeyIndices =
+  let ValidLength = std.contract.from_predicate (fun key_indices =>
+    let len = std.array.length key_indices in len >= 2 && len <= 8
+  ) in
+  std.contract.Sequence [ Set PhysicalKeyIndex, ValidLength ]
+in
+
+let VirtualKey = {
+  type | [| 'combo |],
+  data | (match {
+    'combo => {
+      timeout_ms | Uint8 | default = 50,
+      key_indices | ComboKeyIndices,
+      key_count
+        | std.contract.Equal (std.array.length key_indices)
+        | default = std.array.length key_indices,
+    }
+  }) type
+} in
+
 {
-  Keymap =
-    let ValidLength = std.contract.from_predicate (fun keymap =>
-      let len = std.array.length keymap in len > 0 && len <= MAX_LAYER_COUNT
-    ) in
-    std.contract.Sequence [ Array Layer, ValidLength ],
+  Keymap = {
+    layers | Layers,
+    virtual_keys | Array VirtualKey | default = [],
+  }
 }

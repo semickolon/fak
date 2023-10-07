@@ -34,6 +34,21 @@ let rec _array = {
       std.array.at i arr
     else
       default_value,
+  
+  sort_num | Array Number -> Array Number = fun arr =>
+    arr |> std.array.sort (fun x y =>
+      if x < y then
+        'Lesser
+      else if (x == y) then
+        'Equal
+      else
+        'Greater),
+  
+  min | Array Number -> Number = fun arr =>
+    arr |> sort_num |> std.array.first,
+  
+  max | Array Number -> Number = fun arr =>
+    arr |> sort_num |> std.array.last,
 } in
 
 let Integer = std.number.Integer in
