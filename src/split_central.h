@@ -30,6 +30,7 @@ typedef struct {
     };
 } fak_handle_event_t;
 
+void push_key_event(uint8_t key_idx, uint8_t pressed);
 void handle_non_future(uint32_t key_code, uint8_t down);
 void tap_non_future(uint32_t key_code);
 uint32_t get_real_key_code(uint8_t key_idx);

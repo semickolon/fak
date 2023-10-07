@@ -5,11 +5,16 @@
 #include "keymap.h"
 #include "bootloader.h"
 
+#define COMBO_ENABLE
+
 #ifdef HOLD_TAP_ENABLE
 #include "hold_tap.h"
 #endif
 #ifdef TAP_DANCE_ENABLE
 #include "tap_dance.h"
+#endif
+#ifdef COMBO_ENABLE
+#include "combo.h"
 #endif
 
 #define KEY_STATUS_DOWN 0x01
@@ -161,7 +166,7 @@ static void handle_key_events() {
     }
 }
 
-static void push_key_event(uint8_t key_idx, uint8_t pressed) {
+void push_key_event(uint8_t key_idx, uint8_t pressed) {
     fak_key_state_t *ks = &key_states[key_idx];
 
     if (!pressed && (ks->status & KEY_STATUS_RESOLVED)) {
@@ -265,17 +270,40 @@ void tap_non_future(uint32_t key_code) {
     USB_EP1I_send_now();
 }
 
+#ifdef COMBO_ENABLE
+__code fak_combo_def_t combo_defs[COMBO_COUNT] = {
+    {
+        .key_count = 2,
+        .timeout_ms = 255,
+        .key_indices = { 2, 3 },
+    },
+    {
+        .key_count = 2,
+        .timeout_ms = 30,
+        .key_indices = { 3, 4 },
+    },
+    {
+        .key_count = 2,
+        .timeout_ms = 30,
+        .key_indices = { 2, 4 },
+    },
+};
+#endif
+
 void key_state_inform(uint8_t key_idx, uint8_t down) {
     fak_key_state_t *ks = &key_states[key_idx];
     uint8_t last_down = (ks->status & KEY_STATUS_DEBOUNCE) >> 1;
     
     if (last_down == down) {
         uint8_t last_pressed = ks->status & KEY_STATUS_DOWN;
+        if (last_pressed == down) return;
 
-        if (last_pressed != down) {
-            ks->status = ks->status & ~KEY_STATUS_DOWN | down;
-            push_key_event(key_idx, down);
-        }
+        ks->status = ks->status & ~KEY_STATUS_DOWN | down;
+#ifdef COMBO_ENABLE
+        combo_push_key_event(key_idx, down);
+#else
+        push_key_event(key_idx, down);
+#endif
     } else {
         ks->status = ks->status & ~KEY_STATUS_DEBOUNCE | (down << 1);
     }
@@ -319,6 +347,9 @@ void keyboard_init() {
         key_states[--i].status = 0;
     }
 
+#ifdef COMBO_ENABLE
+    combo_init();
+#endif
 #ifdef SPLIT_ENABLE
     split_periph_init();
 #endif
@@ -332,5 +363,8 @@ void keyboard_scan() {
     split_periph_scan();
 #endif
     delay(DEBOUNCE_MS);
+#ifdef COMBO_ENABLE
+    combo_handle();
+#endif
     handle_key_events();
 }
