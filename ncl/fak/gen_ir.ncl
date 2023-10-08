@@ -176,7 +176,7 @@ let _central_defines = {
 } & util.record.only_if (layer_count > 1) {
   XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
   XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
-} & util.record.only_if (std.array.length combos > 1) {
+} & util.record.only_if (std.array.length combos > 0) {
   COMBO_COUNT = std.array.length combos,
   COMBO_KEY_QUEUE_LEN = combos
     |> std.array.map (fun c => c.data.key_indices)

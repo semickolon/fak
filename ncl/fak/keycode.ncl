@@ -26,7 +26,31 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
             |> std.array.map (fun v => { "%{v}" = _K index })
           )
         |> std.array.reduce_left (&),
-      mod = mod_ K 'regular
+      mod = mod_ K 'regular,
+      ks = {
+        CIRC = kc.N6,
+        DLR = kc.N4,
+        TILD = kc.GRV,
+        PIPE = kc.BSLS,
+        PERC = kc.N5,
+        AMPR = kc.N7,
+        ASTR = kc.N8,
+        HASH = kc.N3,
+        AT = kc.N2,
+        DQUO = kc.QUOT,
+        LCBR = kc.LBRC,
+        RCBR = kc.RBRC,
+        LPRN = kc.N9,
+        RPRN = kc.N0,
+        LABK = kc.COMM,
+        RABK = kc.DOT,
+        QUES = kc.SLSH,
+        UNDS = kc.MINS,
+        PLUS = kc.EQL,
+        COLN = kc.SCLN,
+        EXLM = kc.N1,
+      }
+      |> std.record.map_values ((&) mod.lsft),
     },
     layer = let K = fun i op => K 'layer { layer = i, operation = op } in {
       DF = fun i => K i 'df,
@@ -39,12 +63,12 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
         BOOT = K 1,
       },
       media = let K = fun code => K 'consumer code in {
-        PLAY_PAUSE = K 205,
+        PLAY = K 205,
         MUTE = K 226,
-        VOL_UP = K 233,
-        VOL_DOWN = K 234,
-        NEXT_TRACK = K 181,
-        PREV_TRACK = K 182,
+        VOLU = K 233,
+        VOLD = K 234,
+        NEXT = K 181,
+        PREV = K 182,
       }
     },
     trans = K 'transparent {},
