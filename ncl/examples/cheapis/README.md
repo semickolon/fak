@@ -1,5 +1,7 @@
 **Level: Intermediate 😅**
 
+![My development cheapis split](./cheapis_fak.jpg)
+
 This is what I use for development!
 
 Check out dotleon's cheapis here: https://github.com/dotleon/cheapis
