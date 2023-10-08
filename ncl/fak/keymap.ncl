@@ -143,6 +143,6 @@ let VirtualKey = {
 {
   Keymap = {
     layers | Layers,
-    virtual_keys | Array VirtualKey | default = [],
+    virtual_keys | Set VirtualKey | default = [],
   }
 }
