@@ -35,6 +35,14 @@ If you use Nix, you can simply use the provided flakes.
 1. `meson setup build && cd build`
 1. `meson compile flash`
 
+## Examples
+
+Check out the examples and see how keyboards and keymaps are defined in FAK, and how powerful and crazy it can get.
+
+1. [Beginner - 3x3 macropad](ncl/examples/3x3_macropad)
+1. [Intermediate - cheapis](ncl/examples/cheapis)
+1. [Advanced - zilpzalp](ncl/examples/zilpzalp)
+
 # Features
 
 ## Layers
