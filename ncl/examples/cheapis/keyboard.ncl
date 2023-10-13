@@ -32,6 +32,9 @@ side_central & {
     vendor_id = 65535,
     product_id = 0,
     product_ver = 42069,
+    # FIXME: There is a known issue with strings making USB connection slow
+    # manufacturer = "dotleon",
+    # product = "cheapis",
   },
   split.peripheral = side_periph,
   keys =

@@ -10,7 +10,6 @@ let GpioPin = std.contract.from_predicate (fun value =>
 
 let UsbString = std.contract.from_predicate (fun value =>
   std.is_string value
-  && std.string.length value > 0
   && std.string.length value <= MAX_USB_STRING_LENGTH
 ) in
 
@@ -32,9 +31,9 @@ let UsbDev = {
   vendor_id | Uint16,
   product_id | Uint16,
   product_ver | Uint16,
-  manufacturer | UsbString | optional,
-  product | UsbString | optional,
-  serial_number | UsbString | optional
+  manufacturer | UsbString | default = "",
+  product | UsbString | default = "",
+  serial_number | UsbString | default = "",
 } in
 
 let Matrix = fun mcu => {

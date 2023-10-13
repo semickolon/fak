@@ -115,6 +115,16 @@ let encode_hold_tap_key_interrupts = fun key_interrupts =>
   |> std.array.map encode_pair
 in
 
+let encode_usb_str = fun str =>
+  if std.string.length str > 0 then
+    str
+    |> std.string.characters
+    |> std.array.flat_map (fun c => ["'%{c}'", "0"])
+    |> util.array.join ","
+  else
+    false
+in
+
 let is_custom_keys_used =
   deep_keycodes
   |> std.array.any (fun kc => 
@@ -161,6 +171,11 @@ let _central_defines = {
   USB_VENDOR_ID = kb.usb_dev.vendor_id,
   USB_PRODUCT_ID = kb.usb_dev.product_id,
   USB_PRODUCT_VER = kb.usb_dev.product_ver,
+
+  # FIXME: Using strings make USB negotiation slow and I have no idea why
+  USB_MANUFACTURER_STR = encode_usb_str kb.usb_dev.manufacturer,
+  USB_PRODUCT_STR = encode_usb_str kb.usb_dev.product,
+  USB_SERIAL_NO_STR = encode_usb_str kb.usb_dev.serial_number,
 
   USB_EP0_SIZE = 8,
   USB_EP1_SIZE = 8,
