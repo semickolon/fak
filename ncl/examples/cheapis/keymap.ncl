@@ -64,7 +64,7 @@ let make_hrm = fun key_idx =>
 
   let hrm_key_indices = [10, 11, 12, 13, 16, 17, 18, 19] in
 
-  if std.array.any ((==) key_idx) hrm_key_indices then
+  if std.array.elem key_idx hrm_key_indices then
     let mod_idx = util.array.index_of key_idx hrm_key_indices in
     let side = if mod_idx < (std.array.length hrm_mods / 2) then 'left else 'right in
     let mod = std.array.at mod_idx hrm_mods in

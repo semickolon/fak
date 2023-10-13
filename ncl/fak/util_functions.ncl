@@ -4,7 +4,7 @@ let rec _number = {
 
 let rec _array = {
   unique = fun arr => std.array.fold_left (fun acc e =>
-    if std.array.any ((==) e) acc then acc else acc @ [e]
+    if std.array.elem e acc then acc else acc @ [e]
   ) [] arr,
 
   enumerate = fun arr => std.array.fold_left (fun acc e => acc @ [{

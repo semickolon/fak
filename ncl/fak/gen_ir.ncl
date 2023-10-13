@@ -231,8 +231,8 @@ let _defines = {
   SPLIT_SIDE_CENTRAL = side != 'peripheral,
   SPLIT_SIDE_PERIPHERAL = side == 'peripheral,
 
-  UART0_ALT = std.array.any ((==) "uart01") feature_keys_used,
-  UART1_ALT = std.array.any ((==) "uart11") feature_keys_used,
+  UART0_ALT = std.array.elem "uart01" feature_keys_used,
+  UART1_ALT = std.array.elem "uart11" feature_keys_used,
 } & util.record.only_if (side != 'self) {
   SPLIT_PERIPH_KEY_COUNT =
     (if side == 'central then kb.split.peripheral else kb).keys
@@ -287,7 +287,7 @@ let rec _kscan | Kscan =
                 data.col = col,
                 data.row = row,
               } in
-              if std.array.any ((==) k) kb.keys then
+              if std.array.elem k kb.keys then
                 util.array.index_of k kb.keys
               else
                 -1

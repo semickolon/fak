@@ -29,7 +29,7 @@ let { array, .. } = import "util_functions.ncl" in
 
   ElementOf = fun list => std.contract.from_predicate
     (match {
-      '"Array" => fun e => std.array.any ((==) e) list,
-      'Record  => fun e => std.array.any ((==) e) (std.record.values list),
+      '"Array" => fun e => std.array.elem e list,
+      'Record  => fun e => std.array.elem e (std.record.values list),
     } (std.typeof list)),
 }

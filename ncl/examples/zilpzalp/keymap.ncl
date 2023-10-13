@@ -26,7 +26,7 @@ let key_count = physical_key_count + virtual_key_count in
 let rec get_side_of_key_idx = fun key_idx =>
   if key_idx < physical_key_count then
     let right_indices = [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 26, 27] in
-    if std.array.any ((==) key_idx) right_indices then 'right else 'left
+    if std.array.elem key_idx right_indices then 'right else 'left
   else
     let c = std.array.at (key_idx - physical_key_count) combos in
     let unique_sides = (std.array.split_at 1 c).right
@@ -69,14 +69,14 @@ let make_hrm = fun key_idx =>
           ki.xx
         else if side_of_key_idx != side then
           ki.hr
-        else if std.array.any ((==) key_idx) hrm_key_indices_on_side then
+        else if std.array.elem key_idx hrm_key_indices_on_side then
           ki.tr
         else
           ki.tp
       ) key_count
   } in
 
-  if std.array.any ((==) key_idx) hrm_key_indices then
+  if std.array.elem key_idx hrm_key_indices then
     let mod_idx = util.array.index_of key_idx hrm_key_indices in
     let mod = std.array.at mod_idx hrm_mods in
     let side = get_side_of_key_idx key_idx in
