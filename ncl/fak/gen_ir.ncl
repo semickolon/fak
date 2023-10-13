@@ -1,5 +1,5 @@
 let util = import "util_functions.ncl" in
-let { Set, .. } = import "util_types.ncl" in
+let { Set, Uint8, .. } = import "util_types.ncl" in
 
 fun kb km side =>
 
@@ -84,8 +84,11 @@ let encode_holdable = fun { type, data } is_hold_tap => match {
 let encode_hold_tap = fun { tap, hold } is_hold_tap => encode_tappable tap + util.bit.shift (encode_holdable hold is_hold_tap) 16 in
 
 let encode_tap_dance = fun { tapping_term_ms, bindings, max_taps } =>
-  let { Uint8, .. } = import "util_types.ncl" in
-  let binding_start = std.array.fold_left (+) 0 (std.array.map (fun i => std.array.length (std.array.at i _tap_dance_bindings)) (std.array.range 0 (util.array.index_of bindings _tap_dance_bindings))) in
+  let binding_start = _tap_dance_bindings
+    |> util.array.index_of bindings
+    |> std.array.generate (fun i => std.array.length (std.array.at i _tap_dance_bindings))
+    |> std.array.fold_left (+) 0
+  in
   util.bit.shift 14 28
   + util.bit.shift max_taps 20
   + util.bit.shift tapping_term_ms 8
@@ -103,10 +106,14 @@ let encode_hold_tap_key_interrupt = fun { decision, trigger_on } =>
   ) in
 
 let encode_hold_tap_key_interrupts = fun key_interrupts =>
-  std.array.map (fun pair =>
-    (std.array.at 0 pair) + (util.bit.shift (util.array.at_or 1 0 pair) 4)
-  ) (util.array.chunk 2 (std.array.map encode_hold_tap_key_interrupt key_interrupts)) in
-
+  let encode_pair = (fun pair =>
+    (std.array.at 0 pair) + (util.bit.shift (util.array.last_or 0 pair) 4)
+  ) in
+  key_interrupts
+  |> std.array.map encode_hold_tap_key_interrupt
+  |> util.array.chunk 2
+  |> std.array.map encode_pair
+in
 
 let is_custom_keys_used =
   deep_keycodes
@@ -267,7 +274,10 @@ let rec _kscan | Kscan =
   let index_of_out = fun out_pin => util.array.index_of out_pin _kscan.outs in
 {
   ins = kb.matrix.cols
-    @ (std.array.map (fun k => k.data) (std.array.filter (fun k => k.type == 'direct) kb.keys)),
+    @ (kb.keys
+      |> std.array.filter (fun k => k.type == 'direct)
+      |> std.array.map (fun k => k.data)
+    ),
   outs = kb.matrix.rows,
   matrix = {
     ins = std.array.map index_of_in kb.matrix.cols,
@@ -295,14 +305,13 @@ let rec _kscan | Kscan =
         ) (std.array.length outs)
       ) else [],
   },
-  direct = std.array.map (fun { index, value } => {
-    in_idx = index_of_in value.data,
-    key_idx = index,
-  }) (
-    std.array.filter
-      (fun { index, value } => value.type == 'direct)
-      (util.array.enumerate kb.keys)
-  ),
+  direct = kb.keys
+    |> util.array.enumerate
+    |> std.array.filter (fun { index, value } => value.type == 'direct)
+    |> std.array.map (fun { index, value } => {
+        in_idx = index_of_in value.data,
+        key_idx = index,
+      }),
 } in
 
 {

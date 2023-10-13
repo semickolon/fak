@@ -15,9 +15,9 @@ let rec codegen = {
         std.to_string value,
     struct = fun record =>
       "{\n" ++ util.array.join "\n" (
-        std.array.map (fun { field, value } =>
-          ".%{field} = %{auto value},"
-        ) (std.record.to_array record)
+        record
+        |> std.record.to_array
+        |> std.array.map (fun { field, value } => ".%{field} = %{auto value},")
       ) ++ "\n}",
     array = fun arr => "{ %{util.array.join ", " (std.array.map auto arr)} }"
   },
@@ -26,11 +26,11 @@ let rec codegen = {
     let codegen_define = fun { field, value } => if value == false then "" else "#define %{field} %{
       if value == true then "" else std.to_string value
     }" in
-    util.array.join "\n" (
-      std.array.filter (fun s => s != "") (
-        std.array.map codegen_define (std.record.to_array defines)
-      )
-    ),
+    defines
+    |> std.record.to_array
+    |> std.array.map codegen_define
+    |> std.array.filter (fun s => s != "")
+    |> util.array.join "\n",
   
   pin_def = fun i pin out =>
     let prefix = if out then "OUT" else "IN" in
@@ -109,24 +109,25 @@ m%"
   %{side_central_defs}
 
   %{
-    util.array.join "\n" (
-      std.array.map (fun { index, value } => codegen.pin_def index value false) (util.array.enumerate ir.kscan.ins)
-    )
+    ir.kscan.ins
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => codegen.pin_def index value false)
+    |> util.array.join "\n"
   }
 
   %{
-    util.array.join "\n" (
-      std.array.map (fun { index, value } => codegen.pin_def index value true) (util.array.enumerate ir.kscan.outs)
-    )
+    ir.kscan.outs
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => codegen.pin_def index value true)
+    |> util.array.join "\n"
   }
 
   void keyboard_init_user() {
   %{
-    util.array.join "\n" (
-      std.array.generate (fun i =>
-        set_out_pin true i
-      ) (std.array.length ir.kscan.outs)
-    )
+    ir.kscan.outs
+    |> std.array.length
+    |> std.array.generate (fun i => set_out_pin true i)
+    |> util.array.join "\n"
   }
   }
 
@@ -139,42 +140,33 @@ m%"
   void keyboard_scan_user() {
   // Direct pins
   %{
-    util.array.join "\n" (
-      std.array.map (fun { in_idx, key_idx } =>
-        key_state_inform key_idx in_idx
-      ) ir.kscan.direct
-    )
-  } 
+    ir.kscan.direct
+    |> std.array.map (fun { in_idx, key_idx } => key_state_inform key_idx in_idx)
+    |> util.array.join "\n"
+  }
 
   // Matrix
   %{
     let matrix_row_scan = fun out_pin_idx row_mapping =>
-      util.array.join "\n" ([
-        set_out_pin false out_pin_idx,
-        "row_switch_delay();",
-      ]
-      @ (
-        std.array.map (fun { index, value } => 
+      row_mapping
+      |> util.array.enumerate
+      |> std.array.map (fun { index, value } => 
           let in_pin_idx = std.array.at index ir.kscan.matrix.ins in
           let key_idx = value in
           key_state_inform key_idx in_pin_idx
-        ) (
-          std.array.filter (fun { index, value } =>
-            value >= 0
-          ) (
-            util.array.enumerate row_mapping
-          )
         )
-      )
-      @ [
-        set_out_pin true out_pin_idx,
-      ])
+      |> std.array.prepend "row_switch_delay();"
+      |> std.array.prepend (set_out_pin false out_pin_idx)
+      |> std.array.append  (set_out_pin true  out_pin_idx)
+      |> util.array.join "\n"
     in
-    util.array.join "\n\n" (
-      std.array.map
-        (fun { index, value } => matrix_row_scan (std.array.at index ir.kscan.matrix.outs) value)
-        (util.array.enumerate ir.kscan.matrix.mapping)
-    )
+
+    ir.kscan.matrix.mapping
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => 
+        matrix_row_scan (std.array.at index ir.kscan.matrix.outs) value
+      )
+    |> util.array.join "\n\n"
   }
   }
 "% in
