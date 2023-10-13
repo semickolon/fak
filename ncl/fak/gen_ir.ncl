@@ -162,20 +162,20 @@ let _central_defines = {
   KEY_EVENT_QUEUE_LEN = 32,
 
   XADDR_USB_EP0 = 0,
-  XADDR_USB_EP2 = XADDR_USB_EP0 + USB_EP0_SIZE + USB_EP_PADDING,
-  XADDR_USB_EP1 = XADDR_USB_EP2 + USB_EP2_SIZE + USB_EP_PADDING,
-  XADDR_USB_EP1O = XADDR_USB_EP1,
-  XADDR_USB_TX_LEN = XADDR_USB_EP1 + USB_EP1_SIZE + USB_EP_PADDING,
-  XADDR_USB_EP1I = XADDR_USB_EP1 + 64,
+  XADDR_USB_EP1 = XADDR_USB_EP0 + USB_EP0_SIZE + USB_EP_PADDING,
+  XADDR_USB_EP2 = XADDR_USB_EP1 + USB_EP1_SIZE + USB_EP_PADDING,
+  XADDR_USB_TX_LEN = XADDR_USB_EP2 + USB_EP1_SIZE + USB_EP_PADDING,
 
   XADDR_LAST_TAP_TIMESTAMP = "(XADDR_USB_TX_LEN + sizeof(uint8_t))",
   XADDR_TAP_COUNT = "(XADDR_LAST_TAP_TIMESTAMP + sizeof(uint16_t))",
-
-  XADDR_KEY_STATES = XADDR_USB_EP1I + USB_EP1_SIZE + USB_EP_PADDING,
-  XADDR_KEY_EVENT_QUEUE = "(XADDR_KEY_STATES + sizeof(fak_key_state_t) * KEY_COUNT)",
-} & util.record.only_if (layer_count > 1) {
   XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
   XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
+
+  XADDR_KEY_STATES = "(XADDR_PERSISTENT_LAYER_STATE + sizeof(fak_layer_state_t))",
+  XADDR_KEY_EVENT_QUEUE = "(XADDR_KEY_STATES + sizeof(fak_key_state_t) * KEY_COUNT)",
+} & util.record.only_if (layer_count > 1) {
+  # XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
+  # XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
 } & util.record.only_if (std.array.length combos > 0) {
   COMBO_COUNT = std.array.length combos,
   COMBO_KEY_QUEUE_LEN = combos

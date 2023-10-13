@@ -35,7 +35,6 @@ typedef struct {
     USB_ITF_DESCR itf_keyboard_descr;
     USB_HID_DESCR hid_keyboard_descr;
     USB_ENDP_DESCR endp1_in_descr;
-    USB_ENDP_DESCR endp1_out_descr;
 #ifdef CONSUMER_KEYS_ENABLE
     USB_ITF_DESCR itf_consumer_descr;
     USB_HID_DESCR hid_consumer_descr;
@@ -48,8 +47,7 @@ __xdata __at(XADDR_USB_TX_LEN) uint8_t usb_tx_len;
 __bit usb_hid_protocol;
 
 __xdata __at(XADDR_USB_EP0) uint8_t EP0_buffer[USB_EP0_SIZE];
-__xdata __at(XADDR_USB_EP1O) uint8_t EP1O_buffer[USB_EP1_SIZE];
-__xdata __at(XADDR_USB_EP1I) uint8_t EP1I_buffer[USB_EP1_SIZE];
+__xdata __at(XADDR_USB_EP1) uint8_t EP1I_buffer[USB_EP1_SIZE];
 
 #ifdef CONSUMER_KEYS_ENABLE
 __xdata __at(XADDR_USB_EP2) uint16_t EP2I_buffer[USB_EP2_SIZE / 2];
@@ -93,7 +91,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bDescriptorType = USB_DESCR_TYP_INTERF,
         .bInterfaceNumber = 0,
         .bAlternateSetting = 0,
-        .bNumEndpoints = 2,
+        .bNumEndpoints = 1,
         .bInterfaceClass = USB_DEV_CLASS_HID,
         .bInterfaceSubClass = 1, // Boot interface
         .bInterfaceProtocol = 1, // Keyboard
@@ -114,15 +112,6 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bLength = sizeof(USB_ENDP_DESCR),
         .bDescriptorType = USB_DESCR_TYP_ENDP,
         .bEndpointAddress = USB_ENDP_DIR_MASK | 1, // IN 1
-        .bmAttributes = USB_ENDP_TYPE_INTER,
-        .wMaxPacketSizeL = LSB(USB_EP1_SIZE),
-        .wMaxPacketSizeH = MSB(USB_EP1_SIZE),
-        .bInterval = 1
-    },
-    .endp1_out_descr = {
-        .bLength = sizeof(USB_ENDP_DESCR),
-        .bDescriptorType = USB_DESCR_TYP_ENDP,
-        .bEndpointAddress = 1, // OUT 1
         .bmAttributes = USB_ENDP_TYPE_INTER,
         .wMaxPacketSizeL = LSB(USB_EP1_SIZE),
         .wMaxPacketSizeH = MSB(USB_EP1_SIZE),
@@ -178,15 +167,6 @@ __code uint8_t USB_HID_REPORT_DESCR[] = {
     0x95, 0x01,
     0x75, 0x08,
     0x81, 0x01,
-    0x95, 0x05,
-    0x75, 0x01,
-    0x05, 0x08,
-    0x19, 0x01,
-    0x29, 0x05,
-    0x91, 0x02,
-    0x95, 0x01,
-    0x75, 0x03,
-    0x91, 0x01,
     0x95, 0x06,
     0x75, 0x08,
     0x15, 0x00,
@@ -416,8 +396,6 @@ inline static void USB_EP1_IN() {
     UEP1_CTRL = UEP1_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_NAK;
 }
 
-inline static void USB_EP1_OUT() {}
-
 #ifdef CONSUMER_KEYS_ENABLE
 void USB_EP2I_write_now(uint8_t idx, uint16_t value) {
     IE_USB = 0;
@@ -458,7 +436,6 @@ void USB_interrupt() {
             case UIS_TOKEN_OUT:
                 switch (endp) {
                     case 0: USB_EP0_OUT(); break;
-                    case 1: USB_EP1_OUT(); break;
                 }
                 break;
         }
@@ -478,7 +455,6 @@ void USB_init() {
         i--;
         EP0_buffer[i] = 0;
         EP1I_buffer[i] = 0;
-        EP1O_buffer[i] = 0;
 #ifdef CONSUMER_KEYS_ENABLE
         EP2I_buffer[i / 2] = 0;
 #endif
@@ -497,7 +473,7 @@ void USB_init() {
     UEP1_T_LEN = USB_EP1_SIZE;
     UEP1_DMA = XADDR_USB_EP1;
     UEP1_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_ACK;
-    UEP4_1_MOD = bUEP1_RX_EN | bUEP1_TX_EN;
+    UEP4_1_MOD = bUEP1_TX_EN;
 
 #ifdef CONSUMER_KEYS_ENABLE
     UEP2_T_LEN = USB_EP2_SIZE;

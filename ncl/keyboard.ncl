@@ -1,1 +1,1 @@
-import "examples/zilpzalp/keyboard.ncl"
+import "examples/cheapis/keyboard.ncl"
