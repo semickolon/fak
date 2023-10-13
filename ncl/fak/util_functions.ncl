@@ -49,6 +49,18 @@ let rec _array = {
   
   max | Array Number -> Number = fun arr =>
     arr |> sort_num |> std.array.last,
+  
+  first_or = at_or 0,
+
+  last_or = fun default_value arr =>
+    if std.array.length arr > 0 then
+      std.array.last arr
+    else
+      default_value,
+  
+  to_string | Array std.string.Stringable -> String = fun arr =>
+    let contents = arr |> std.array.map std.to_string |> join ", " in
+    "[%{contents}]",
 } in
 
 let Integer = std.number.Integer in

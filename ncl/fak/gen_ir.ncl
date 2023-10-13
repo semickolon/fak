@@ -158,24 +158,7 @@ let _central_defines = {
   USB_EP0_SIZE = 8,
   USB_EP1_SIZE = 8,
   USB_EP2_SIZE = 8,
-  USB_EP_PADDING = 2,
   KEY_EVENT_QUEUE_LEN = 32,
-
-  XADDR_USB_EP0 = 0,
-  XADDR_USB_EP1 = XADDR_USB_EP0 + USB_EP0_SIZE + USB_EP_PADDING,
-  XADDR_USB_EP2 = XADDR_USB_EP1 + USB_EP1_SIZE + USB_EP_PADDING,
-  XADDR_USB_TX_LEN = XADDR_USB_EP2 + USB_EP1_SIZE + USB_EP_PADDING,
-
-  XADDR_LAST_TAP_TIMESTAMP = "(XADDR_USB_TX_LEN + sizeof(uint8_t))",
-  XADDR_TAP_COUNT = "(XADDR_LAST_TAP_TIMESTAMP + sizeof(uint16_t))",
-  XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
-  XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
-
-  XADDR_KEY_STATES = "(XADDR_PERSISTENT_LAYER_STATE + sizeof(fak_layer_state_t))",
-  XADDR_KEY_EVENT_QUEUE = "(XADDR_KEY_STATES + sizeof(fak_key_state_t) * KEY_COUNT)",
-} & util.record.only_if (layer_count > 1) {
-  # XADDR_LAYER_STATE = "(XADDR_TAP_COUNT + sizeof(fak_layer_state_t))",
-  # XADDR_PERSISTENT_LAYER_STATE = "(XADDR_LAYER_STATE + sizeof(fak_layer_state_t))",
 } & util.record.only_if (std.array.length combos > 0) {
   COMBO_COUNT = std.array.length combos,
   COMBO_KEY_QUEUE_LEN = combos
@@ -189,6 +172,60 @@ let _central_defines = {
   COMBO_KEY_IDX_START = std.array.length kb.keys,
 } in
 
+let _xaddr_sizes = let
+  sizeof = {
+    usb_ep = fun i =>
+      let name = "USB_EP%{std.to_string i}_SIZE" in
+      let padding = 2 in
+      _central_defines."%{name}" + padding,
+    uint8_t = 1,
+    uint16_t = 2,
+    uint32_t = 4,
+    fak_key_state_t = uint8_t + uint32_t,
+    fak_key_event_t = (uint8_t * 3) + uint16_t,
+  }
+in {
+  USB_EP0 = sizeof.usb_ep 0,
+  USB_EP1 = sizeof.usb_ep 1,
+  USB_TX_LEN = sizeof.uint8_t,
+  LAST_TAP_TIMESTAMP = sizeof.uint16_t,
+  KEY_STATES = sizeof.fak_key_state_t * _central_defines.KEY_COUNT,
+  KEY_EVENT_QUEUE = (sizeof.uint8_t * 3) + (sizeof.fak_key_event_t * _central_defines.KEY_EVENT_QUEUE_LEN),
+}
+& util.record.only_if _central_defines.CONSUMER_KEYS_ENABLE {
+  USB_EP2 = sizeof.usb_ep 2,
+}
+& util.record.only_if (layer_count > 1) (
+  let sizeof = sizeof & {
+    fak_layer_state_t =
+      if layer_count <= 8 then
+        sizeof.uint8_t
+      else if layer_count <= 16 then
+        sizeof.uint16_t
+      else
+        sizeof.uint32_t
+  } in
+  {
+    LAYER_STATE = sizeof.fak_layer_state_t,
+    PERSISTENT_LAYER_STATE = sizeof.fak_layer_state_t,
+  }
+)
+& util.record.only_if _central_defines.TAP_DANCE_ENABLE {
+  TAP_COUNT = sizeof.uint8_t,
+} in
+
+let _xaddr_defines =
+  let names = std.record.fields _xaddr_sizes in
+  let sizes = std.record.values _xaddr_sizes in
+  sizes
+  |> std.array.drop_last
+  |> std.array.fold_left (fun acc size => acc @ [size + util.array.last_or 0 acc]) []
+  |> std.array.prepend 0
+  |> util.array.enumerate
+  |> std.array.map (fun { index, value } => { "XADDR_%{std.array.at index names}" = value })
+  |> std.array.fold_left (&) {}
+in
+
 let _defines = {
   SPLIT_ENABLE = side != 'self,
   SPLIT_SIDE_CENTRAL = side != 'peripheral,
@@ -200,8 +237,9 @@ let _defines = {
   SPLIT_PERIPH_KEY_COUNT =
     (if side == 'central then kb.split.peripheral else kb).keys
     |> std.array.length,
-} & util.record.only_if (side != 'peripheral)
-  _central_defines
+} & util.record.only_if (side != 'peripheral) (
+  _central_defines & _xaddr_defines
+)
 in
 
 let encode_hold_tap_behavior = fun b => {
