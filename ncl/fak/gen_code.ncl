@@ -150,6 +150,7 @@ m%"
     let matrix_row_scan = fun out_pin_idx row_mapping =>
       row_mapping
       |> util.array.enumerate
+      |> std.array.filter (fun { index, value } => value >= 0)
       |> std.array.map (fun { index, value } => 
           let in_pin_idx = std.array.at index ir.kscan.matrix.ins in
           let key_idx = value in
