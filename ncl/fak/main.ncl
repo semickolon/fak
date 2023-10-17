@@ -9,6 +9,7 @@ let km | Keymap = _km in
 
 let gen_ir = import "gen_ir.ncl" in
 let gen_code = import "gen_code.ncl" in
+let gen_meson_options = import "gen_meson_options.ncl" in
 
 let is_split = std.record.has_field "split" kb in
 
@@ -39,16 +40,18 @@ if is_split then
     split.peripheral.keys | force = transformed_periph_keys,
   } in
 
+  let central_ir = gen_ir transformed_kb km 'central in
+  let peripheral_ir = gen_ir transformed_kb.split.peripheral {} 'peripheral in
+
   {
-    central =
-      let kb = transformed_kb in
-      gen_ir kb km 'central |> gen_code,
-    peripheral =
-      let kb = transformed_kb.split.peripheral in
-      gen_ir kb {} 'peripheral |> gen_code,
+    central = central_ir |> gen_code,
+    peripheral = peripheral_ir |> gen_code,
+    meson_options = central_ir |> gen_meson_options,
   }
 
 else
+  let ir = gen_ir kb km 'self in
   {
-    central = gen_ir kb km 'self |> gen_code,
+    central = ir |> gen_code,
+    meson_options = ir |> gen_meson_options,
   }

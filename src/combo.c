@@ -1,5 +1,3 @@
-#if COMBO_COUNT > 0
-
 #include "combo.h"
 #include "time.h"
 #include "split_central.h"
@@ -203,5 +201,3 @@ void combo_init() {
 
     combo_key_queue.size = 0;
 }
-
-#endif

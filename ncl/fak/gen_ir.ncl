@@ -15,6 +15,8 @@ let combos = km.virtual_keys
   |> std.array.filter (fun { type, .. } => type == 'combo)
 in
 
+let combo_count = std.array.length combos in
+
 let features_used =
   if side == 'self then [] else [kb.split.channel]
 in
@@ -164,6 +166,8 @@ let _central_defines = {
   CONSUMER_KEYS_ENABLE = is_custom_keys_of_type_used 'consumer,
   USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
 
+  COMBO_COUNT = combo_count,
+
   USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE]
     |> std.array.filter ((==) true)
     |> std.array.length,
@@ -181,8 +185,7 @@ let _central_defines = {
   USB_EP1_SIZE = 8,
   USB_EP2_SIZE = 8,
   KEY_EVENT_QUEUE_LEN = 32,
-} & util.record.only_if (std.array.length combos > 0) {
-  COMBO_COUNT = std.array.length combos,
+} & util.record.only_if (combo_count > 0) {
   COMBO_KEY_QUEUE_LEN = combos
     |> std.array.map (fun c => c.data.key_indices)
     |> std.array.reduce_left (@)

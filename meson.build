@@ -14,9 +14,6 @@ sources_central = [
     'src/split_central.c',
     'src/keymap.c',
     'src/key_event_queue.c',
-    'src/hold_tap.c',
-    'src/tap_dance.c',
-    'src/combo.c',
 ]
 
 sources_peripheral = [
@@ -26,18 +23,9 @@ sources_peripheral = [
 ###
 
 cc = find_program('sdcc', required : true)
-objcopy = find_program('objcopy', required : true)
 nickel = find_program('nickel', required : true)
-jq = find_program('jq', required : true)
+python = find_program('python', required : true)
 wchisp = find_program('wchisp', required : false)
-
-ncl = custom_target('ncl',
-    input : 'ncl/fak/main.ncl',
-    output : '@PLAINNAME@.json',
-    capture : true,
-    command : [nickel, 'export', '--format', 'json', '-f', '@INPUT@'],
-    build_always_stale : true,
-)
 
 sides = ['central']
 if get_option('split')
@@ -46,17 +34,19 @@ endif
 
 foreach side : sides
     side_h = custom_target(side + '.h',
-        input : ncl,
+        input : 'fak.py',
         output : side + '.h',
         capture : true,
-        command : [jq, '-r', '.' + side + '.h', '@INPUT@'],
+        command : [python, '@INPUT@', 'query_ncl', side + '.h'],
+        depend_files : ['.main.ncl.json'],
     )
 
     side_c = custom_target(side + '.c',
-        input : ncl,
+        input : 'fak.py',
         output : side + '.c',
         capture : true,
-        command : [jq, '-r', '.' + side + '.c', '@INPUT@'],
+        command : [python, '@INPUT@', 'query_ncl', side + '.c'],
+        depend_files : ['.main.ncl.json'],
     )
 
     dir_base = meson.current_source_dir()
@@ -76,6 +66,11 @@ foreach side : sides
     
     if side == 'central'
         sources += sources_central
+
+        extra_sources = get_option('extra_sources').strip()
+        if extra_sources != ''
+            sources += extra_sources.split(',')
+        endif
     elif side == 'peripheral'
         sources += sources_peripheral
     endif
@@ -85,26 +80,13 @@ foreach side : sides
     ihx = custom_target(side + '.ihx',
         input : rel,
         output : side + '.ihx',
+        install : true,
+        install_dir : 'firmware',
         command : [cc, cc_args, '-o', '@OUTPUT@', '@INPUT@'],
     )
 
-    bin = custom_target(side + '.bin',
-        input : ihx,
-        output : side + '.bin',
-        install : true,
-        install_dir: 'firmware',
-        command : [objcopy, '-I', 'ihex', '-O', 'binary', '@INPUT@', '@OUTPUT@'],
-    )
-
     flash = run_target('flash_' + side,
-        command : [wchisp, 'flash', bin.full_path()],
-        depends : bin,
+        command : [wchisp, 'flash', ihx.full_path()],
+        depends : ihx,
     )
-
-    if side == 'central'
-        alias_target('flash', flash)
-        alias_target('flash_c', flash)
-    elif side == 'peripheral'
-        alias_target('flash_p', flash)
-    endif
 endforeach

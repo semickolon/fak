@@ -33,6 +33,7 @@
             sdcc
             nickel
             meson
+            python311
             ninja
             jq
             wchisp

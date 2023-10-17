@@ -21,10 +21,10 @@ Currently, it is only tested on the CH552T, but it should also work with CH552E/
 # Getting started
 
 Requirements:
-- [`jq`](https://github.com/jqlang/jq/releases/tag/jq-1.7)
-- [`meson`](https://mesonbuild.com/)
-- [`nickel` 1.2.1](https://github.com/tweag/nickel/releases/tag/1.2.1)
 - [`sdcc`](https://sourceforge.net/projects/sdcc/files)
+- [`nickel` 1.2.1](https://github.com/tweag/nickel/releases/tag/1.2.1)
+- [`python` 3.11+](https://www.python.org/downloads)
+- [`meson`](https://mesonbuild.com/)
 - [`ninja`](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
 - [`wchisp`](https://github.com/ch32-rs/wchisp/releases/tag/nightly)
 
@@ -32,8 +32,12 @@ If you use Nix, you can simply use the provided flakes.
 
 1. Clone this repo
 1. Edit `ncl/keyboard.ncl` and `ncl/keymap.ncl`
-1. `meson setup build && cd build`
-1. `meson compile flash`
+1. `python fak.py flash`
+1. `python fak.py flash_p` for the peripheral side if you have a split
+
+**Note:** It is **recommended** you use `fak.py` instead of entering `meson` commands directly. The build system is streamlined such that Nickel automatically gives you the correct build options. However, Meson can't configure itself for this to work, and we wouldn't want to enter those build options manually everytime they change, so `fak.py` exists as a helper script that derives build options from Nickel then applies them to Meson.
+
+**TL;DR:** Don't use Meson directly. `fak.py` is your friend. Makes life easy.
 
 ## Examples
 
@@ -182,21 +186,6 @@ let side_periph = {
     D 30, D 11,   S 3, S 4, S 5,
   ]
 }
-```
-
-Only if you have a split config, within your build directory, set the build option `split` to `true` like so: `meson configure -Dsplit=true` then use *any one* of the following commands to flash the central side:
-
-```
-meson compile flash
-meson compile flash_c
-meson compile flash_central
-```
-
-And the peripheral side:
-
-```
-meson compile flash_p
-meson compile flash_peripheral
 ```
 
 Current limitations:

@@ -1,1 +1,2 @@
-option('split', type : 'boolean', value : false)
+option('split', type : 'boolean', value : true)
+option('extra_sources', type : 'string', value : '')
