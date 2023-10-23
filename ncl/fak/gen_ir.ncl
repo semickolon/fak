@@ -237,7 +237,17 @@ in {
 )
 & util.record.only_if _central_defines.TAP_DANCE_ENABLE {
   TAP_COUNT = sizeof.uint8_t,
-} in
+}
+& util.record.only_if (combo_count > 0) (
+  let sizeof = sizeof & {
+    fak_combo_state_t = sizeof.uint8_t + sizeof.uint16_t,
+    fak_combo_key_queue_entry_t = 2 * sizeof.uint8_t,
+  } in
+  {
+    COMBO_STATES = sizeof.fak_combo_state_t * _central_defines.COMBO_COUNT, 
+    COMBO_KEY_QUEUE = sizeof.uint8_t + (sizeof.fak_combo_key_queue_entry_t * _central_defines.COMBO_KEY_QUEUE_LEN),
+  }
+) in
 
 let _xaddr_defines =
   let names = std.record.fields _xaddr_sizes in
