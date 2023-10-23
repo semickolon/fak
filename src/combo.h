@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 
+#define COMBO_FLAGS_KEY_COUNT_MASK 0x07
+#define COMBO_FLAGS_SLOW_RELEASE_MASK 0x08
+
 typedef struct {
-    uint8_t key_count;
+    uint8_t flags;
     uint8_t timeout_ms;
     uint8_t key_indices[COMBO_MAX_KEY_COUNT];
 } fak_combo_def_t;

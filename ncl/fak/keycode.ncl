@@ -104,7 +104,8 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
         timeout_ms = t,
         key_indices = k,
       },
-    }
+    },
+    make_slow = fun t k => make t k & { data.slow_release = true },
   },
   
   MO = fun i => hold.reg.layer i,

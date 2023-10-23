@@ -4,6 +4,8 @@
 
 #define REF_COUNT_OWNED 255
 
+#define COMBO_KEY_COUNT(combo_def) ((combo_def.flags & COMBO_FLAGS_KEY_COUNT_MASK) + 2)
+
 typedef struct {
     uint8_t state;
     uint16_t timestamp;
@@ -35,7 +37,7 @@ void combo_push_key_event(uint8_t key_idx, uint8_t pressed) {
     if (pressed) {
         // Add to combo key queue if key is in any combo
         for (uint8_t i = COMBO_COUNT; i;) {
-            for (uint8_t j = combo_defs[--i].key_count; j;) {
+            for (uint8_t j = COMBO_KEY_COUNT(combo_defs[--i]); j;) {
                 if (combo_defs[i].key_indices[--j] != key_idx)
                     continue;
 
@@ -102,14 +104,15 @@ void combo_handle() {
     }
 
     for (uint8_t i = 0; i < COMBO_COUNT; i++) {
+        uint8_t pressed_keys = 0;
+        uint8_t combo_key_count = COMBO_KEY_COUNT(combo_defs[i]);
+
         #define combo_def (combo_defs[i])
         #define combo_state (combo_states[i])
-        #define all_pressed_keys ((1 << combo_def.key_count) - 1)
-
-        uint8_t pressed_keys = 0;
+        #define all_pressed_keys ((1 << combo_key_count) - 1)
 
         // Enumerate pressed keys
-        for (uint8_t j = 0; j < combo_def.key_count; j++) {
+        for (uint8_t j = 0; j < combo_key_count; j++) {
             for (uint8_t k = 0; k < combo_key_queue.size; k++) {
                 if (combo_def.key_indices[j] != combo_key_queue.q[k].key_idx)
                     continue;
@@ -142,7 +145,7 @@ void combo_handle() {
 
         // Populate ref counters, only if this is an inactive combo
         if (combo_state.state != 2) {
-            for (uint8_t j = 0; j < combo_def.key_count; j++) {
+            for (uint8_t j = 0; j < combo_key_count; j++) {
                 if (!(pressed_keys & (1 << j)))
                     continue;
                 
@@ -168,7 +171,15 @@ void combo_handle() {
             combo_state.state = 2;
             push_key_event(COMBO_KEY_IDX_START + i, 1);
         } else if (combo_state.state == 2) {
-            if (pressed_keys != all_pressed_keys) {
+            uint8_t release = 0;
+
+            if (combo_def.flags & COMBO_FLAGS_SLOW_RELEASE_MASK) {
+                release = pressed_keys == 0;
+            } else {
+                release = pressed_keys != all_pressed_keys;
+            }
+
+            if (release) {
                 combo_state.state = 0;
                 push_key_event(COMBO_KEY_IDX_START + i, 0);
             }

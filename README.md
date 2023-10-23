@@ -206,9 +206,13 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 {
   virtual_keys = [
     # The first argument is the timeout_ms (up to 255)
-    # The second argument is the key indices/positions (min 2, max 8)
+    # The second argument is the key indices/positions (min 2, max 9 keys)
     combo.make 50 [2, 3],
-    combo.make 30 [0, 2, 5],
+
+    # With `make`, the combo is released once *any one* of the key indices is released
+    # Alternatively, `make_slow` releases the combo once *all* of the key indices are released
+    combo.make_slow 30 [0, 2, 5],
+
     # You can't use virtual key indices. Just physical keys.
   ],
   # Assuming a 6-key macropad + 2 virtual keys, our layers need to have 8 keycodes.
@@ -232,7 +236,7 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 ```
 
 Current limitations:
-- Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos are supported though, as shown in the example above.
+- Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos (e.g., `[2, 3]` and `[3, 4, 5]`) are supported though, as shown in the example above.
 
 ## Foolproof config
 

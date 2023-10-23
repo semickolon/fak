@@ -53,6 +53,14 @@ let encode_modifiers = fun mods => std.array.reduce_left (+) (std.array.map (fun
   (if value == true then 1 else 0) * (std.number.pow 2 (util.array.index_of field M))
 ) (std.record.to_array mods)) in
 
+let encode_combo = fun combo => {
+  timeout_ms = combo.timeout_ms,
+  key_indices = combo.key_indices,
+  flags =
+    std.array.length combo.key_indices - 2
+    + util.bit.shift (if combo.slow_release then 1 else 0) 3,
+} in
+
 let encode_tappable = fun { type, data } => match {
   'none => 0,
   'regular => data.hid_code + util.bit.shift (encode_modifiers data.mods) 8,
@@ -192,7 +200,7 @@ let _central_defines = {
     |> util.array.unique
     |> std.array.length,
   COMBO_MAX_KEY_COUNT = combos
-    |> std.array.map (fun c => c.data.key_count)
+    |> std.array.map (fun c => std.array.length c.data.key_indices)
     |> util.array.max,
   COMBO_KEY_IDX_START = std.array.length kb.keys,
 } in
@@ -357,7 +365,7 @@ let rec _kscan | Kscan =
     std.array.map encode_kc (std.array.flatten _tap_dance_bindings),
   
   combo_defs = if side == 'peripheral then [] else
-    std.array.map (fun c => c.data) combos,
+    std.array.map (fun c => encode_combo c.data) combos,
 
   split_periph_key_indices = 
     if side != 'central then [] else

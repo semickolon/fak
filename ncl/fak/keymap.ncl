@@ -122,7 +122,7 @@ in
 
 let ComboKeyIndices =
   let ValidLength = std.contract.from_predicate (fun key_indices =>
-    let len = std.array.length key_indices in len >= 2 && len <= 8
+    let len = std.array.length key_indices in len >= 2 && len <= 9
   ) in
   std.contract.Sequence [ Set PhysicalKeyIndex, ValidLength ]
 in
@@ -133,9 +133,7 @@ let VirtualKey = {
     'combo => {
       timeout_ms | Uint8 | default = 50,
       key_indices | ComboKeyIndices,
-      key_count
-        | std.contract.Equal (std.array.length key_indices)
-        | default = std.array.length key_indices,
+      slow_release | Bool | default = false,
     }
   }) type
 } in
