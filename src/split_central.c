@@ -15,12 +15,10 @@
 #include "combo.h"
 #endif
 
-#define KEY_STATUS_DOWN 0x01
-#define KEY_STATUS_DEBOUNCE 0x02
-#define KEY_STATUS_RESOLVED 0x04
-
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
+
+__xdata __at(XADDR_STRONG_MODS_REF_COUNT) uint8_t strong_mods_ref_count[8];
 
 #ifdef SPLIT_ENABLE
 extern __code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT];
@@ -58,14 +56,23 @@ static uint8_t key_check(uint8_t key_code) {
 }
 
 static void register_mods(uint8_t mods, uint8_t down) {
-    uint8_t current_mods = USB_EP1I_read(0);
-    uint8_t new_mods = current_mods;
+    uint8_t new_mods = 0;
 
-    if (down) {
-        new_mods |= mods;
-    } else {
-        new_mods &= ~mods;
+    for (uint8_t i = 8; i;) {
+        i--;
+        
+        if (mods & (1 << i)) {
+            if (down) {
+                strong_mods_ref_count[i] += 1;
+            } else if (strong_mods_ref_count[i]) {
+                strong_mods_ref_count[i] -= 1;
+            }
+        }
+
+        new_mods |= ((strong_mods_ref_count[i] > 0) << i);
     }
+
+    uint8_t current_mods = USB_EP1I_read(0);
 
     if (current_mods != new_mods) {
         USB_EP1I_write(0, new_mods);
@@ -323,6 +330,11 @@ exit:
 void keyboard_init() {
     for (uint8_t i = KEY_COUNT; i;) {
         key_states[--i].status = 0;
+    }
+
+    for (uint8_t i = 8; i;) {
+        i--;
+        strong_mods_ref_count[i] = 0;
     }
 
 #if COMBO_COUNT > 0

@@ -59,6 +59,25 @@ static uint8_t process_eager(
     return 0;
 }
 
+static uint8_t resolve_eager(uint8_t decide_hold, fak_key_state_t *ks, uint8_t behavior_flags) {
+    uint8_t eager_correct;
+
+    if (decide_hold) {
+        eager_correct = process_eager(ks, behavior_flags, EAGER_DECIDE_HOLD);
+        ks->key_code &= KEY_CODE_HOLD_MASK;
+    } else {
+        eager_correct = process_eager(ks, behavior_flags, EAGER_DECIDE_TAP);
+        ks->key_code &= KEY_CODE_TAP_MASK;
+    }
+
+    if (eager_correct) {
+        ks->status |= KEY_STATUS_RESOLVED;
+        return HANDLE_RESULT_COMPLETED;
+    }
+
+    return HANDLE_RESULT_MAPPED;
+}
+
 uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t delta) {
     fak_key_event_t *ev_front = key_event_queue_front();
     uint8_t behavior_idx = (ks->key_code & KEY_CODE_HOLD_LAYER_BEHAVIOR_MASK) >> 29;
@@ -71,16 +90,7 @@ uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t
             behavior->timeout_ms && delta >= behavior->timeout_ms
         ) {
             uint8_t decision = behavior->flags & HOLD_TAP_FLAGS_TIMEOUT_DECISION_MASK;
-
-            if (decision == HOLD_TAP_FLAGS_TIMEOUT_DECISION_TAP) {
-                process_eager(ks, behavior->flags, EAGER_DECIDE_TAP);
-                ks->key_code &= KEY_CODE_TAP_MASK;
-            } else {
-                process_eager(ks, behavior->flags, EAGER_DECIDE_HOLD);
-                ks->key_code &= KEY_CODE_HOLD_MASK;
-            }
-
-            return HANDLE_RESULT_MAPPED;
+            return resolve_eager(decision == HOLD_TAP_FLAGS_TIMEOUT_DECISION_HOLD, ks, behavior->flags);
         }
 #ifdef HOLD_TAP_QUICK_TAP_ENABLE
         if (*state == STATE_PRE_QUICK_TAP && delta >= behavior->quick_tap_ms) {
@@ -151,14 +161,8 @@ uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t
                     (key_interrupt & HOLD_TAP_KEY_INTERRUPT_ENABLE)
                     && ev_in->pressed == ((key_interrupt & 4) >> 2)
                 ) {
-                    if (key_interrupt & HOLD_TAP_KEY_INTERRUPT_DECIDE_HOLD) {
-                        process_eager(ks, behavior->flags, EAGER_DECIDE_HOLD);
-                        ks->key_code &= KEY_CODE_HOLD_MASK;
-                    } else {
-                        process_eager(ks, behavior->flags, EAGER_DECIDE_TAP);
-                        ks->key_code &= KEY_CODE_TAP_MASK;
-                    }
-                    return HANDLE_RESULT_MAPPED;
+                    uint8_t decide_hold = key_interrupt & HOLD_TAP_KEY_INTERRUPT_DECIDE_HOLD;
+                    return resolve_eager(decide_hold, ks, behavior->flags);
                 }
             }
             break;

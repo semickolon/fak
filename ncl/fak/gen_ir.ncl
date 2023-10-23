@@ -216,6 +216,7 @@ in {
   LAST_TAP_TIMESTAMP = sizeof.uint16_t,
   KEY_STATES = sizeof.fak_key_state_t * _central_defines.KEY_COUNT,
   KEY_EVENT_QUEUE = (sizeof.uint8_t * 3) + (sizeof.fak_key_event_t * _central_defines.KEY_EVENT_QUEUE_LEN),
+  STRONG_MODS_REF_COUNT = sizeof.uint8_t * 8,
 }
 & util.record.only_if _central_defines.CONSUMER_KEYS_ENABLE {
   USB_EP2 = sizeof.usb_ep 2,
