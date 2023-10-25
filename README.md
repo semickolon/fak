@@ -238,6 +238,30 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 Current limitations:
 - Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos (e.g., `[2, 3]` and `[3, 4, 5]`) are supported though, as shown in the example above.
 
+## Sticky mods
+
+Tired of holding shift for just one key? What about tapping shift then *only* the next key press gets shifted? That's what sticky mods are all about and more.
+
+```
+let sticky_shift = tap.sticky.mod.lsft in
+
+# It doesn't have to be just shift. You can mix and match mods as shown below.
+# When you press two sticky mods in a row, they get stacked or combined, waiting for the next key press.
+
+let sticky_gui_alt = tap.sticky.mod.lgui & tap.sticky.mod.lalt in
+let sticky_ctrl_shift = tap.sticky.mod.lctl & tap.sticky.mod.lsft in
+```
+
+Another use case for sticky mods that I find very useful and personally use is this:
+
+```
+# Normal shift on hold, sticky shift on tap!
+let best_shift_ever =
+  tap.sticky.mod.lsft
+  & hold.reg.mod.lsft
+  & hold.reg.behavior { ... }
+```
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
