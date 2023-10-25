@@ -108,7 +108,8 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         key_indices = k,
       },
     },
-    make_slow = fun t k => make t k & { data.slow_release = true },
+    slow_release = { data.slow_release = true },
+    require_prior_idle_ms = fun ms => { data.require_prior_idle_ms = ms },
   },
   
   MO = fun i => hold.reg.layer i,

@@ -53,14 +53,6 @@ let encode_modifiers = fun mods => std.array.reduce_left (+) (std.array.map (fun
   (if value == true then 1 else 0) * (std.number.pow 2 (util.array.index_of field M))
 ) (std.record.to_array mods)) in
 
-let encode_combo = fun combo => {
-  timeout_ms = combo.timeout_ms,
-  key_indices = combo.key_indices,
-  flags =
-    std.array.length combo.key_indices - 2
-    + util.bit.shift (if combo.slow_release then 1 else 0) 3,
-} in
-
 let encode_tappable = fun { type, data } => match {
   'none => 0,
   'regular => data.hid_code + util.bit.shift (encode_modifiers data.mods) 8,
@@ -92,7 +84,10 @@ let encode_holdable = fun { type, data } is_hold_tap => match {
   'transparent => 65535
 } type in
 
-let encode_hold_tap = fun { tap, hold } is_hold_tap => encode_tappable tap + util.bit.shift (encode_holdable hold is_hold_tap) 16 in
+let encode_hold_tap = fun { tap, hold } is_hold_tap =>
+  encode_tappable tap
+  + util.bit.shift (encode_holdable hold is_hold_tap) 16
+in
 
 let encode_tap_dance = fun { tapping_term_ms, bindings, max_taps } =>
   let binding_start = _tap_dance_bindings
@@ -178,6 +173,8 @@ let _central_defines = {
   USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
 
   COMBO_COUNT = combo_count,
+  COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
+    |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
 
   USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE]
     |> std.array.filter ((==) true)
@@ -306,6 +303,16 @@ let encode_hold_tap_behavior = fun b => {
   quick_tap_interrupt_ms = b.quick_tap_interrupt_ms
 } & util.record.only_if _defines.HOLD_TAP_GLOBAL_QUICK_TAP_ENABLE {
   global_quick_tap_ms = b.global_quick_tap_ms
+} in
+
+let encode_combo = fun combo => {
+  timeout_ms = combo.timeout_ms,
+  key_indices = combo.key_indices,
+  flags =
+    std.array.length combo.key_indices - 2
+    + util.bit.shift (if combo.slow_release then 1 else 0) 3,
+} & util.record.only_if _defines.COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE {
+  require_prior_idle_ms = combo.require_prior_idle_ms,
 } in
 
 let Kscan = std.contract.from_predicate (fun k =>

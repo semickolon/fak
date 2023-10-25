@@ -137,6 +137,7 @@ let VirtualKey = {
       timeout_ms | Uint8 | default = 50,
       key_indices | ComboKeyIndices,
       slow_release | Bool | default = false,
+      require_prior_idle_ms | Uint16 | default = 0,
     }
   }) type
 } in

@@ -9,6 +9,9 @@
 typedef struct {
     uint8_t flags;
     uint8_t timeout_ms;
+#ifdef COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE
+    uint16_t require_prior_idle_ms;
+#endif
     uint8_t key_indices[COMBO_MAX_KEY_COUNT];
 } fak_combo_def_t;
 

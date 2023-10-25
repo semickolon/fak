@@ -35,9 +35,24 @@ static void combo_key_queue_remove(uint8_t idx) {
 
 void combo_push_key_event(uint8_t key_idx, uint8_t pressed) {
     if (pressed) {
-        // Add to combo key queue if key is in any combo
+#ifdef COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE
+        uint16_t last_tap_delta = get_timer() - get_last_tap_timestamp();
+#endif
+
+        // Add to combo key queue if key is in any (handle-able) combo
         for (uint8_t i = COMBO_COUNT; i;) {
-            for (uint8_t j = COMBO_KEY_COUNT(combo_defs[--i]); j;) {
+            i--;
+
+#ifdef COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE
+            // Do not handle combo if it requires prior idle time
+            uint16_t require_prior_idle_ms = combo_defs[i].require_prior_idle_ms;
+
+            if (require_prior_idle_ms && require_prior_idle_ms > last_tap_delta) {
+                continue;
+            }
+#endif
+
+            for (uint8_t j = COMBO_KEY_COUNT(combo_defs[i]); j;) {
                 if (combo_defs[i].key_indices[--j] != key_idx)
                     continue;
 

@@ -209,13 +209,18 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
     # The second argument is the key indices/positions (min 2, max 9 keys)
     combo.make 50 [2, 3],
 
-    # With `make`, the combo is released once *any one* of the key indices is released
-    # Alternatively, `make_slow` releases the combo once *all* of the key indices are released
-    combo.make_slow 30 [0, 2, 5],
+    # By default, the combo is released once *any one* of the key indices is released
+    # Merge with `combo.slow_release` if you want the combo to release once *all* of the key indices are released instead
+    combo.make 30 [0, 2, 5] & combo.slow_release,
+
+    # During fast typing, you might want to temporarily ignore combos to prevent triggering them
+    # To do this, merge with `combo.require_prior_idle_ms [ms]`
+    # For example, the following combo is ignored if the last keypress happened no more than 180ms ago.
+    combo.make 60 [0, 1] & combo.require_prior_idle_ms 180
 
     # You can't use virtual key indices. Just physical keys.
   ],
-  # Assuming a 6-key macropad + 2 virtual keys, our layers need to have 8 keycodes.
+  # Assuming a 6-key macropad + 3 virtual keys, our layers need to have 9 keycodes.
   layers = [
     [
       kc.A, kc.B, kc.C,
@@ -223,6 +228,7 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
       # After physical keycodes, our virtual keycodes begin:
       kc.N1 & mod.lctl,
       kc.N2 & mod.lalt,
+      kc.N3,
     ],
     [
       kc.G, kc.H, kc.I,
@@ -230,6 +236,7 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
       # Like physical keys, they can be different across layers and use transparency
       my_tap_dance,
       tap.trans & mod.lgui,
+      kc.N4,
     ],
   ],
 }
