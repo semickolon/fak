@@ -69,12 +69,15 @@ let Holdable = {
 } in
 
 let Tappable = {
-  type | [| 'none, 'regular, 'layer, 'custom, 'transparent |],
+  type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent |],
   data | (match {
     'none => {},
     'regular => {
       hid_code | Uint8 | default = 0,
       mods | Modifiers | default = {}
+    },
+    'sticky => {
+      mods | Modifiers | default = {},
     },
     'layer => {
       operation | [| 'df, 'tog, 'to |],

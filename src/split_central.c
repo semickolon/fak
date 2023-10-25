@@ -20,6 +20,11 @@ __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
 
 __xdata __at(XADDR_STRONG_MODS_REF_COUNT) uint8_t strong_mods_ref_count[8];
 
+#ifdef STICKY_MODS_ENABLE
+__xdata __at(XADDR_PENDING_STICKY_MODS) uint8_t pending_sticky_mods = 0;
+__xdata __at(XADDR_APPLIED_STICKY_MODS) uint8_t applied_sticky_mods = 0;
+#endif
+
 #ifdef SPLIT_ENABLE
 extern __code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT];
 #endif
@@ -64,7 +69,7 @@ static void register_mods(uint8_t mods, uint8_t down) {
         if (mods & (1 << i)) {
             if (down) {
                 strong_mods_ref_count[i] += 1;
-            } else if (strong_mods_ref_count[i]) {
+            } else {
                 strong_mods_ref_count[i] -= 1;
             }
         }
@@ -84,13 +89,27 @@ static void register_code(uint8_t key_code, uint8_t down) {
     uint8_t match_idx = key_check_ret & 0x0F;
     uint8_t empty_idx = (key_check_ret & 0xF0) >> 4;
 
-    if (down && !match_idx && empty_idx) {
-        USB_EP1I_write(empty_idx, key_code);
-    } else if (!down && match_idx) {
-        USB_EP1I_write(match_idx, 0);
-    } else {
+    __bit write = (down && !match_idx && empty_idx) || (!down && match_idx);
+
+    if (!write) {
         return;
     }
+
+#ifdef STICKY_MODS_ENABLE
+    if (!applied_sticky_mods && pending_sticky_mods && down) {
+        applied_sticky_mods = pending_sticky_mods;
+        pending_sticky_mods = 0;
+        register_mods(applied_sticky_mods, 1);
+    } else if (applied_sticky_mods) {
+        register_mods(applied_sticky_mods, 0);
+        applied_sticky_mods = 0;
+    }
+#endif
+
+    USB_EP1I_write(
+        down ? empty_idx : match_idx,
+        down ? key_code  : 0
+    );
 
     last_tap_timestamp = get_timer();
 }
@@ -213,8 +232,12 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
     uint8_t tap_code = (key_code & KEY_CODE_TAP_CODE_MASK);
 
     switch (tap_code & 0xE0) {
-    case 0xA0:
+#ifdef STICKY_MODS_ENABLE
+    case 0xA0: // Sticky layer/mods
+        if (!down) break;
+        pending_sticky_mods |= tap_mods;
         break;
+#endif
 
 #if LAYER_COUNT > 1
     case 0xC0: // Layer-tap action

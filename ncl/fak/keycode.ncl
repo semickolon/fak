@@ -1,7 +1,7 @@
 let util = import "util_functions.ncl" in
 let hid_codes = import "hid_codes.ncl" in
 
-let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
+let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
   lctl = K "left_ctrl",
   lsft = K "left_shift",
   lalt = K "left_alt",
@@ -26,7 +26,7 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
             |> std.array.map (fun v => { "%{v}" = _K index })
           )
         |> std.array.reduce_left (&),
-      mod = mod_ K 'regular,
+      mod = mod_ (K 'regular),
       ks = {
         CIRC = kc.N6,
         DLR = kc.N4,
@@ -51,6 +51,9 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
         EXLM = kc.N1,
       }
       |> std.record.map_values ((&) mod.lsft),
+    },
+    sticky = {
+      mod = mod_ (K 'sticky),
     },
     layer = let K = fun i op => K 'layer { layer = i, operation = op } in {
       DF = fun i => K i 'df,
@@ -81,7 +84,7 @@ let mod_ = fun K t => let K = fun mod => K t { mods."%{mod}" = true } in {
     reg = {
       behavior = fun b => K 'regular { behavior = b },
       layer = fun i => K 'regular { layer = i },
-      mod = mod_ K 'regular
+      mod = mod_ (K 'regular),
     },
     nop = fun b => K 'nop { behavior = b },
     trans = K 'transparent {}
