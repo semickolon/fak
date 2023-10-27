@@ -72,7 +72,17 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         VOLD = K 234,
         NEXT = K 181,
         PREV = K 182,
-      }
+      },
+      mouse = let K = fun code => K 'mouse code in {
+        BTN1 = K 0,
+        BTN2 = K 1,
+        BTN3 = K 2,
+        BTN4 = K 3,
+        BTN5 = K 4,
+        BTN6 = K 5,
+        BTN7 = K 6,
+        BTN8 = K 7,
+      },
     },
     trans = K 'transparent {},
   },

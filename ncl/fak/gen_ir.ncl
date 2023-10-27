@@ -65,7 +65,8 @@ let encode_tappable = fun { type, data } => match {
     224 + util.bit.shift (data.code - m) 3 + util.bit.shift m 6 + match {
       'fak => 0,
       'consumer => 1,
-      'user => 2
+      'user => 2,
+      'mouse => 3,
     } data.type,
   'transparent => 65535
 } type in
@@ -171,12 +172,13 @@ let _central_defines = {
   FAK_KEYS_ENABLE = is_custom_keys_of_type_used 'fak,
   CONSUMER_KEYS_ENABLE = is_custom_keys_of_type_used 'consumer,
   USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
+  MOUSE_KEYS_ENABLE = is_custom_keys_of_type_used 'mouse,
 
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
     |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
 
-  USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE]
+  USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE, MOUSE_KEYS_ENABLE]
     |> std.array.filter ((==) true)
     |> std.array.length,
 
@@ -192,6 +194,7 @@ let _central_defines = {
   USB_EP0_SIZE = 8,
   USB_EP1_SIZE = 8,
   USB_EP2_SIZE = 8,
+  USB_EP3_SIZE = 4,
   KEY_EVENT_QUEUE_LEN = 32,
 } & util.record.only_if (combo_count > 0) {
   COMBO_KEY_QUEUE_LEN = combos
@@ -228,6 +231,9 @@ in {
 }
 & util.record.only_if _central_defines.CONSUMER_KEYS_ENABLE {
   USB_EP2 = sizeof.usb_ep 2,
+}
+& util.record.only_if _central_defines.MOUSE_KEYS_ENABLE {
+  USB_EP3 = sizeof.usb_ep 3,
 }
 & util.record.only_if (layer_count > 1) (
   let sizeof = sizeof & {

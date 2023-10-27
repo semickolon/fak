@@ -281,6 +281,15 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
         case 2: // User-defined
             break;
 #endif
+#ifdef MOUSE_KEYS_ENABLE
+        case 3: // Mouse
+            if (custom_code < 8) {
+                uint8_t buttons = USB_EP3I_read(0);
+                buttons = (buttons & ~(1 << custom_code)) | (down << custom_code);
+                USB_EP3I_write(0, buttons);
+            }
+            break;
+#endif
         }
         break;
 #endif

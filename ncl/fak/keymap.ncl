@@ -84,7 +84,7 @@ let Tappable = {
       layer | LayerIndex
     },
     'custom => {
-      type | [| 'fak, 'consumer, 'user |],
+      type | [| 'fak, 'consumer, 'user, 'mouse |],
       code | Uint 10
     },
     'transparent => {}

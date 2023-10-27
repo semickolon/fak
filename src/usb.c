@@ -40,6 +40,11 @@ typedef struct {
     USB_HID_DESCR hid_consumer_descr;
     USB_ENDP_DESCR endp2_in_descr;
 #endif
+#ifdef MOUSE_KEYS_ENABLE
+    USB_ITF_DESCR itf_mouse_descr;
+    USB_HID_DESCR hid_mouse_descr;
+    USB_ENDP_DESCR endp3_in_descr;
+#endif
 } USB_CFG1_DESCR;
 
 __code uint8_t *p_usb_tx;
@@ -51,6 +56,10 @@ __xdata __at(XADDR_USB_EP1) uint8_t EP1I_buffer[USB_EP1_SIZE];
 
 #ifdef CONSUMER_KEYS_ENABLE
 __xdata __at(XADDR_USB_EP2) uint16_t EP2I_buffer[USB_EP2_SIZE / 2];
+#endif
+
+#ifdef MOUSE_KEYS_ENABLE
+__xdata __at(XADDR_USB_EP3) uint8_t EP3I_buffer[USB_EP3_SIZE];
 #endif
 
 __code USB_DEV_DESCR USB_DEVICE_DESCR = {
@@ -148,7 +157,44 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .wMaxPacketSizeL = LSB(USB_EP2_SIZE),
         .wMaxPacketSizeH = MSB(USB_EP2_SIZE),
         .bInterval = 1
-    }
+    },
+#endif
+#ifdef MOUSE_KEYS_ENABLE
+    .itf_mouse_descr = {
+        .bLength = sizeof(USB_ITF_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_INTERF,
+#ifdef CONSUMER_KEYS_ENABLE
+        .bInterfaceNumber = 2,
+#else
+        .bInterfaceNumber = 1,
+#endif
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 1,
+        .bInterfaceClass = USB_DEV_CLASS_HID,
+        .bInterfaceSubClass = 1, // Boot interface
+        .bInterfaceProtocol = 2, // Mouse
+        .iInterface = 0
+    },
+    .hid_mouse_descr = {
+        .bLength = sizeof(USB_HID_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_HID,
+        .bcdHIDL = 0x11,
+        .bcdHIDH = 0x01,
+        .bCountryCode = 0,
+        .bNumDescriptors = 1,
+        .bDescriptorTypeX = USB_DESCR_TYP_REPORT,
+        .wDescriptorLengthL = LSB(sizeof(USB_HID_MOUSE_REPORT_DESCR)),
+        .wDescriptorLengthH = MSB(sizeof(USB_HID_MOUSE_REPORT_DESCR))
+    },
+    .endp3_in_descr = {
+        .bLength = sizeof(USB_ENDP_DESCR),
+        .bDescriptorType = USB_DESCR_TYP_ENDP,
+        .bEndpointAddress = USB_ENDP_DIR_MASK | 3, // IN 3
+        .bmAttributes = USB_ENDP_TYPE_INTER,
+        .wMaxPacketSizeL = LSB(USB_EP3_SIZE),
+        .wMaxPacketSizeH = MSB(USB_EP3_SIZE),
+        .bInterval = 1
+    },
 #endif
 };
 
@@ -190,6 +236,35 @@ __code uint8_t USB_HID_CONSUMER_REPORT_DESCR[] = {
     0x2A, 0xFF, 0x03,               //      Usage Maximum (1023)
     0x81, 0x00,                     //      Input (Data, Ary, Abs)
     0xC0
+};
+#endif
+
+#ifdef MOUSE_KEYS_ENABLE
+__code uint8_t USB_HID_MOUSE_REPORT_DESCR[] = {
+    0x05, 0x01,     // USAGE_PAGE (Generic Desktop)
+    0x09, 0x02,     // USAGE (Mouse)
+    0xA1, 0x01,     // COLLECTION (Application)
+    0x09, 0x01,     //   USAGE (Pointer)
+    0xA1, 0x00,     //   COLLECTION (Physical)
+    0x05, 0x09,     //     USAGE_PAGE (Button)
+    0x19, 0x01,     //     USAGE_MINIMUM (Button 1)
+    0x29, 0x08,     //     USAGE_MAXIMUM (Button 8)
+    0x15, 0x00,     //     LOGICAL_MINIMUM (0)
+    0x25, 0x01,     //     LOGICAL_MAXIMUM (1)
+    0x75, 0x01,     //     REPORT_SIZE (1)
+    0x95, 0x08,     //     REPORT_COUNT (8)
+    0x81, 0x02,     //     INPUT (Data,Var,Abs)
+    0x05, 0x01,     //     USAGE_PAGE (Generic Desktop)
+    0x09, 0x30,     //     USAGE (X)
+    0x09, 0x31,     //     USAGE (Y)
+    0x09, 0x38,     //     USAGE (Wheel)
+    0x15, 0x81,     //     LOGICAL_MINIMUM (-127)
+    0x25, 0x7F,     //     LOGICAL_MAXIMUM (127)
+    0x75, 0x08,     //     REPORT_SIZE (8)
+    0x95, 0x03,     //     REPORT_COUNT (3)
+    0x81, 0x06,     //     INPUT (Data,Var,Rel)
+    0xC0,           //   END_COLLECTION
+    0xC0            // END_COLLECTION
 };
 #endif
 
@@ -290,6 +365,12 @@ inline static void USB_EP0_SETUP() {
                     case 1:
                         usb_tx_len = sizeof(USB_HID_CONSUMER_REPORT_DESCR);
                         p_usb_tx = (__code uint8_t *) &USB_HID_CONSUMER_REPORT_DESCR;
+                        break;
+#endif
+#ifdef MOUSE_KEYS_ENABLE
+                    case 2:
+                        usb_tx_len = sizeof(USB_HID_MOUSE_REPORT_DESCR);
+                        p_usb_tx = (__code uint8_t *) &USB_HID_MOUSE_REPORT_DESCR;
                         break;
 #endif
                     }
@@ -411,6 +492,35 @@ inline static void USB_EP2_IN() {
 }
 #endif
 
+#ifdef MOUSE_KEYS_ENABLE
+uint8_t USB_EP3I_read(uint8_t idx) {
+    IE_USB = 0;
+    uint8_t value = EP3I_buffer[idx];
+    IE_USB = 1;
+    return value;
+}
+
+void USB_EP3I_write(uint8_t idx, uint8_t value) {
+    IE_USB = 0;
+    EP3I_buffer[idx] = value;
+    IE_USB = 1;
+    USB_EP3I_ready_send();
+}
+
+inline void USB_EP3I_ready_send() {
+    UEP3_CTRL = UEP3_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_ACK;
+}
+
+inline void USB_EP3I_send_now() {
+    USB_EP3I_ready_send();
+    while (!(UEP3_CTRL & UEP_T_RES_NAK));
+}
+
+inline static void USB_EP3_IN() {
+    UEP3_CTRL = UEP3_CTRL & ~MASK_UEP_T_RES | UEP_T_RES_NAK;
+}
+#endif
+
 #pragma save
 #pragma nooverlay
 void USB_interrupt() {
@@ -429,6 +539,9 @@ void USB_interrupt() {
                     case 1: USB_EP1_IN(); break;
 #ifdef CONSUMER_KEYS_ENABLE
                     case 2: USB_EP2_IN(); break;
+#endif
+#ifdef MOUSE_KEYS_ENABLE
+                    case 3: USB_EP3_IN(); break;
 #endif
                 }
                 break;
@@ -458,6 +571,9 @@ void USB_init() {
 #ifdef CONSUMER_KEYS_ENABLE
         EP2I_buffer[i / 2] = 0;
 #endif
+#ifdef MOUSE_KEYS_ENABLE
+        EP3I_buffer[i / 2] = 0;
+#endif
     }
 
     usb_tx_len = 0;
@@ -479,7 +595,20 @@ void USB_init() {
     UEP2_T_LEN = USB_EP2_SIZE;
     UEP2_DMA = XADDR_USB_EP2;
     UEP2_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
+#endif
+
+#ifdef MOUSE_KEYS_ENABLE
+    UEP3_T_LEN = USB_EP3_SIZE;
+    UEP3_DMA = XADDR_USB_EP3;
+    UEP3_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
+#endif
+
+#if defined(CONSUMER_KEYS_ENABLE) && defined(MOUSE_KEYS_ENABLE)
+    UEP2_3_MOD = bUEP2_TX_EN | bUEP3_TX_EN;
+#elif defined(CONSUMER_KEYS_ENABLE)
     UEP2_3_MOD = bUEP2_TX_EN;
+#elif defined(MOUSE_KEYS_ENABLE)
+    UEP2_3_MOD = bUEP3_TX_EN;
 #endif
 
     USB_INT_EN = bUIE_TRANSFER;
