@@ -9,6 +9,7 @@ fun ir =>
       "src/hold_tap.c" = ir.defines.HOLD_TAP_ENABLE,
       "src/tap_dance.c" = ir.defines.TAP_DANCE_ENABLE,
       "src/combo.c" = ir.defines.COMBO_COUNT > 0,
+      "src/mouse.c" = ir.defines.MOUSE_KEYS_ENABLE,
     } 
     |> std.record.filter (fun _k pred => pred)
     |> std.record.to_array

@@ -14,6 +14,9 @@
 #if COMBO_COUNT > 0
 #include "combo.h"
 #endif
+#ifdef MOUSE_KEYS_ENABLE
+#include "mouse.h"
+#endif
 
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
@@ -283,12 +286,7 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 #endif
 #ifdef MOUSE_KEYS_ENABLE
         case 3: // Mouse
-            if (custom_code < 8) {
-                uint8_t buttons = USB_EP3I_read(0);
-                buttons = (buttons & ~(1 << custom_code)) | (down << custom_code);
-                USB_EP3I_write(0, buttons);
-            }
-            break;
+            return mouse_handle_key(custom_code, down);
 #endif
         }
         break;
@@ -387,6 +385,9 @@ void keyboard_scan() {
     delay(DEBOUNCE_MS);
 #if COMBO_COUNT > 0
     combo_handle();
+#endif
+#ifdef MOUSE_KEYS_ENABLE
+    mouse_process();
 #endif
     handle_key_events();
 }
