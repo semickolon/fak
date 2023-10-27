@@ -9,13 +9,13 @@ void mouse_handle_key(uint16_t custom_code, uint8_t down) {
     }
 
     switch (custom_code) {
-    case 8:  USB_EP3I_write(1, down * 4); break; // Right
-    case 9:  USB_EP3I_write(1, -down * 4); break; // Right
+    case 8:  USB_EP3I_write(1, down * 4);  break; // Right
+    case 9:  USB_EP3I_write(1, -down * 4); break; // Left
     case 10: USB_EP3I_write(2, down * 4);  break; // Down
     case 11: USB_EP3I_write(2, -down * 4); break; // Up
 
-    case 12: USB_EP3I_write(3, down);  break; // Wheel up
-    case 13: USB_EP3I_write(3, -down); break; // Wheel down
+    case 12: USB_EP3I_write(3, down);      break; // Wheel up
+    case 13: USB_EP3I_write(3, -down);     break; // Wheel down
     }
 }
 

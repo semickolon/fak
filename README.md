@@ -269,6 +269,28 @@ let best_shift_ever =
   & hold.reg.behavior { ... }
 ```
 
+## Mouse keys
+
+Yep. Mouse keys. Only constant speed is implemented so far. No acceleration or other modes yet.
+
+```
+# Mouse buttons
+tap.custom.mouse.BTN1   # Left mouse button
+tap.custom.mouse.BTN2   # Right mouse button
+tap.custom.mouse.BTN3   # Middle mouse button
+# This goes up to BTN8, if you have a use case for that
+
+# Mouse movement
+tap.custom.mouse.UP
+tap.custom.mouse.DOWN
+tap.custom.mouse.LEFT
+tap.custom.mouse.RGHT
+
+# Mouse wheel
+tap.custom.mouse.WH_U   # Scroll up
+tap.custom.mouse.WH_D   # Scroll down
+```
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
