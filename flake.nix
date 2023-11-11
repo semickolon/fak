@@ -32,6 +32,7 @@
           with pkgs; [
             sdcc
             nickel
+            nls
             meson
             python311
             ninja
