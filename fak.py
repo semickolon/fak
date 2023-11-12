@@ -5,6 +5,7 @@ import glob
 import hashlib
 import os
 import sys
+import time
 
 os.chdir(sys.path[0])
 
@@ -95,11 +96,25 @@ def subcmd_compile():
     subprocess.run(['meson', 'compile'], check=True, cwd=BUILD_DIR)
 
 
+def wait_for_device():
+    attempts = 12
+    while attempts > 0:
+        try:
+            subprocess.run(['meson', 'compile', 'wchisp_info'], check=True, cwd=BUILD_DIR)
+            return
+        except subprocess.CalledProcessError:
+            print("Device not available!")
+            print("Waiting for bootloader...")
+            time.sleep(5)
+            attempts -= 1
+            pass
+
+
 # TODO: Implement better flashing experience
-# - Wait for bootloader device connection
 # - Automatically flash whatever side(s) needs to reflash
 def subcmd_flash_central():
     meson_configure()
+    wait_for_device()
     subprocess.run(['meson', 'compile', 'flash_central'], check=True, cwd=BUILD_DIR)
 
 
@@ -110,6 +125,7 @@ def subcmd_flash_peripheral():
         print("Error: Can't flash peripheral. The keyboard is not a split.")
         sys.exit(1)
 
+    wait_for_device()
     subprocess.run(['meson', 'compile', 'flash_peripheral'], check=True, cwd=BUILD_DIR)
 
 # TODO: Use argparse
