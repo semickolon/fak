@@ -98,7 +98,7 @@ let rec Keycode =
         layer | NonConditionalLayerIndex
       },
       'custom => {
-        type | [| 'fak, 'consumer, 'user, 'mouse, 'macro |],
+        type | [| 'fak, 'consumer, 'user, 'mouse, 'macro, 'caps_word |],
         data | (match {
           'macro => 
             let MacroStep = {

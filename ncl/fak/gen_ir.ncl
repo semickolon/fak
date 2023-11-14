@@ -96,6 +96,7 @@ let encode_tappable = fun { type, data } => match {
       'user => 2,
       'mouse => 3,
       'macro => 4,
+      'caps_word => 5,
     } data.type,
   'transparent => 65535
 } type in
@@ -240,6 +241,8 @@ let _central_defines = {
   MACRO_STEP_ARG_COUNT = std.array.length _macro_step_args,
 
   CONDITIONAL_LAYER_COUNT = std.record.length km.conditional_layers,
+
+  CAPS_WORD_ENABLE = is_custom_keys_of_type_used 'caps_word,
 
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos

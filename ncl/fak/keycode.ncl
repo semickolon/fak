@@ -89,6 +89,9 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         WH_U = K 12,
         WH_D = K 13,
       },
+      caps_word = let K = fun code => K 'caps_word code in {
+        TOGG = K 0,
+      },
     },
     trans = K 'transparent {},
   },
