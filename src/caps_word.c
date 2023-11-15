@@ -2,6 +2,9 @@
 
 #include "ch552.h"
 
+#include "time.h"
+#include "split_central.h"
+
 __bit caps_word_state = 0;
 
 void caps_word_toggle() {
@@ -14,6 +17,12 @@ __bit caps_word_active() {
 
 __bit caps_word_handle_key(uint8_t code) {
   if (caps_word_state == 0) {
+    return 0;
+  }
+
+  // check hasn't timed out
+  if ((get_timer() - get_last_tap_timestamp()) > 5000) {
+    caps_word_state = 0;
     return 0;
   }
 
