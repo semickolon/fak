@@ -17,6 +17,6 @@ __bit caps_word_active();
 // Does nothing if caps word word is not active.
 //
 // Returns 1 if the needs to press shift key for the key, 0 otherwise.
-__bit caps_word_handle_key(uint8_t code);
+__bit caps_word_handle_key(uint8_t code, uint8_t shift_pressed);
 
 #endif // CAPS_WORD_H_

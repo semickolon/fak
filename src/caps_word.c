@@ -15,7 +15,7 @@ __bit caps_word_active() {
     return caps_word_state;
 }
 
-__bit caps_word_handle_key(uint8_t code) {
+__bit caps_word_handle_key(uint8_t code, uint8_t shift_pressed) {
   if (caps_word_state == 0) {
     return 0;
   }
@@ -30,7 +30,7 @@ __bit caps_word_handle_key(uint8_t code) {
   if ((code >= 0x04) && code < (0x04 + 26)) {
     // A..Z
     return 1;
-  } else if ((code >= 0x04 + 26) && code < (0x04 + 26 + 10)) { // 1..0
+  } else if (!shift_pressed && (code >= 0x04 + 26) && code < (0x04 + 26 + 10)) { // 1..0
   } else if (code == 0x2A) { // backspace
   } else if (code == 0x2D) { // minus
     return 1;

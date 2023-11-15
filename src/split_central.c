@@ -334,7 +334,8 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 
 #ifdef CAPS_WORD_ENABLE
         if (down && tap_code && caps_word_active()) {
-            if (caps_word_handle_key(tap_code)) {
+            uint8_t shift_pressed = (strong_mods_ref_count[1] > 0) | tap_mods & 0x02;
+            if (caps_word_handle_key(tap_code, shift_pressed)) {
                 weak_mods |= 0x02; // press shift key
             }
         }
