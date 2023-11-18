@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
-    nickel.url = "github:tweag/nickel/1.2.1";
+    nickel.url = "github:tweag/nickel/1.3.0";
     naersk.url = "github:nix-community/naersk";
   };
 
