@@ -90,3 +90,7 @@ foreach side : sides
         depends : ihx,
     )
 endforeach
+
+wchisp_info = run_target('wchisp_info',
+    command : [wchisp, 'info'],
+)
