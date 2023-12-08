@@ -26,7 +26,7 @@ def compute_hash_sig():
 
 def save_evaluation(hash_sig):
     completed_proc = subprocess.run(
-        ['nickel', 'export', '--format', 'json', '-f', 'ncl/fak/main.ncl'],
+        ['nickel', 'export', '--format', 'json', 'ncl/fak/main.ncl'],
         capture_output=True,
         text=True,
     )
