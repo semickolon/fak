@@ -16,7 +16,7 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 ## Compatible hardware
 
-Currently, it is only tested on the CH552T, but it should also work with CH552E/G. Other chips like the CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
+Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E but it should work. CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
 
 # Getting started
 
