@@ -24,6 +24,18 @@ let key_count = physical_key_count + virtual_key_count in
 let LayerIndex = BoundedInt 0 (std.array.length km.layers) in
 let PhysicalKeyIndex = BoundedInt 0 physical_key_count in
 
+let NonConditionalLayerIndex =
+  let ValidIndex = std.contract.from_predicate (fun i =>
+    let conditional_layer_indices =
+      util.record.at_or km "conditional_layers" {}
+      |> std.record.fields
+      |> std.array.map std.string.to_number
+    in
+    !(std.array.elem i conditional_layer_indices)
+  ) in
+  std.contract.Sequence [ LayerIndex, ValidIndex ]
+in
+
 let HoldTapKeyInterrupt = {
   decision | [| 'none, 'hold, 'tap |] | default = 'none,
   trigger_on | [| 'press, 'release |] | default = 'press
@@ -60,7 +72,7 @@ let rec Keycode =
       'none => {},
       'regular => {
         behavior | HoldTapBehavior,
-        layer | LayerIndex | default = 0,
+        layer | NonConditionalLayerIndex | default = 0,
         mods | Modifiers | default = {}
       },
       'nop => {
@@ -83,7 +95,7 @@ let rec Keycode =
       },
       'layer => {
         operation | [| 'df, 'tog, 'to |],
-        layer | LayerIndex
+        layer | NonConditionalLayerIndex
       },
       'custom => {
         type | [| 'fak, 'consumer, 'user, 'mouse, 'macro |],
@@ -136,6 +148,15 @@ let Layers =
   std.contract.Sequence [ Array Layer, ValidLength ]
 in
 
+let ConditionalLayers = std.contract.from_predicate (fun cl => cl
+  |> std.record.to_array
+  |> std.array.all (fun { field, value } =>
+      let then_layer | LayerIndex = std.string.to_number field in
+      let if_layers | Set NonConditionalLayerIndex = value in
+      !(std.array.elem then_layer if_layers)
+  )
+) in
+
 let ComboKeyIndices =
   let ValidLength = std.contract.from_predicate (fun key_indices =>
     let len = std.array.length key_indices in len >= 2 && len <= 9
@@ -158,6 +179,7 @@ let VirtualKey = {
 {
   Keymap = {
     layers | Layers,
+    conditional_layers | ConditionalLayers | default = {},
     virtual_keys | Set VirtualKey | default = [],
   }
 }

@@ -28,6 +28,15 @@ typedef uint32_t fak_layer_state_t;
 
 extern __code uint32_t key_map[LAYER_COUNT][KEY_COUNT];
 
+#if CONDITIONAL_LAYER_COUNT > 0
+typedef struct {
+    uint8_t then_layer;
+    fak_layer_state_t if_layers;
+} fak_conditional_layer_def_t;
+
+extern __code fak_conditional_layer_def_t conditional_layers[CONDITIONAL_LAYER_COUNT];
+#endif
+
 uint8_t get_highest_layer_idx();
 uint8_t get_default_layer_idx();
 void set_default_layer_idx(uint8_t layer_idx);

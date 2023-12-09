@@ -97,6 +97,15 @@ m%"
   }
 
   %{
+    if std.array.length ir.conditional_layers > 0 then
+      m%"
+        __code fak_conditional_layer_def_t conditional_layers[CONDITIONAL_LAYER_COUNT] = %{codegen.val.array ir.conditional_layers};
+      "%
+    else
+      "// (No conditional layers)"
+  }
+
+  %{
     if std.array.length ir.macro_steps > 0 then
       m%"
         #include "macro.h"

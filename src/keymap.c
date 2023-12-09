@@ -61,20 +61,37 @@ uint8_t get_default_layer_idx() {
     return 0;
 }
 
+static void on_layer_state_change() {
+#if CONDITIONAL_LAYER_COUNT > 0
+    for (uint8_t i = 0; i < CONDITIONAL_LAYER_COUNT; i++) {
+        __code fak_conditional_layer_def_t *cl = &conditional_layers[i];
+
+        if (((layer_state | persistent_layer_state) & cl->if_layers) == cl->if_layers) {
+            layer_state |= (1 << cl->then_layer);
+        } else {
+            layer_state &= ~(1 << cl->then_layer);
+        }
+    }
+#endif
+}
+
 void set_default_layer_idx(uint8_t layer_idx) {
     set_persistent_layer_state(1 << layer_idx);
 }
 
 void set_layer_state(fak_layer_state_t state) {
     layer_state = state;
+    on_layer_state_change();
 }
 
 void layer_state_on(uint8_t layer_idx) {
     layer_state |= (1 << layer_idx);
+    on_layer_state_change();
 }
 
 void layer_state_off(uint8_t layer_idx) {
     layer_state &= ~(1 << layer_idx);
+    on_layer_state_change();
 }
 
 void layer_state_toggle(uint8_t layer_idx) {
@@ -87,14 +104,17 @@ void layer_state_toggle(uint8_t layer_idx) {
 
 void set_persistent_layer_state(fak_layer_state_t state) {
     persistent_layer_state = state;
+    on_layer_state_change();
 }
 
 void persistent_layer_state_on(uint8_t layer_idx) {
     persistent_layer_state |= (1 << layer_idx);
+    on_layer_state_change();
 }
 
 void persistent_layer_state_off(uint8_t layer_idx) {
     persistent_layer_state &= ~(1 << layer_idx);
+    on_layer_state_change();
 }
 
 uint8_t is_layer_on(uint8_t layer_idx) {

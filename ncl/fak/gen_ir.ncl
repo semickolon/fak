@@ -236,6 +236,8 @@ let _central_defines = {
   MACRO_KEYS_ENABLE = std.array.length _macro_steps > 0,
   MACRO_STEP_ARG_COUNT = std.array.length _macro_step_args,
 
+  CONDITIONAL_LAYER_COUNT = std.record.length km.conditional_layers,
+
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
     |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
@@ -451,6 +453,17 @@ let rec _kscan | Kscan =
 
   macro_steps = if side =='peripheral then [] else _macro_steps,
   macro_step_args = if side =='peripheral then [] else _macro_step_args,
+
+  conditional_layers = if side == 'peripheral then [] else (
+    km.conditional_layers
+    |> std.record.to_array
+    |> std.array.map (fun { field, value } => {
+      then_layer = std.string.to_number field,
+      if_layers = value
+        |> std.array.map (fun i => util.bit.shift 1 i)
+        |> std.array.fold_left (+) 0,
+    })
+  ),
 
   split_periph_key_indices = 
     if side != 'central then [] else

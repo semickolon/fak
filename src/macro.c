@@ -3,6 +3,8 @@
 #include "time.h"
 #include "usb.h"
 
+// TODO: Macro processing should be non-blocking
+
 void macro_handle_key(uint16_t step_idx, uint8_t down) {
     if (!down) return;
 
