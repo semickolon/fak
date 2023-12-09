@@ -97,17 +97,20 @@ def subcmd_compile():
 
 
 def wait_for_device():
-    attempts = 12
-    while attempts > 0:
+    attempts = 0
+    while attempts < 16:
         try:
-            subprocess.run(['meson', 'compile', 'wchisp_info'], check=True, cwd=BUILD_DIR)
+            subprocess.run(['meson', 'compile', 'wchisp_info'], check=True, cwd=BUILD_DIR, capture_output=True)
             return
         except subprocess.CalledProcessError:
-            print("Device not available!")
-            print("Waiting for bootloader...")
-            time.sleep(5)
-            attempts -= 1
-            pass
+            if attempts == 0:
+                print("Device not available!")
+                print("Waiting for bootloader...", end="", flush=True)
+            else:
+                print(".", end="", flush=True)
+            
+            time.sleep(1)
+            attempts += 1
 
 
 # TODO: Implement better flashing experience
