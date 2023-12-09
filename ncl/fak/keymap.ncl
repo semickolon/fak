@@ -53,62 +53,74 @@ in {
     | default = false,
 } in
 
-let Holdable = {
-  type | [| 'none, 'regular, 'nop, 'transparent |],
-  data | (match {
-    'none => {},
-    'regular => {
-      behavior | HoldTapBehavior,
-      layer | LayerIndex | default = 0,
-      mods | Modifiers | default = {}
-    },
-    'nop => {
-      behavior | HoldTapBehavior,
-    },
-    'transparent => {}
-  }) type
-} in
+let rec Keycode = 
+  let Holdable = {
+    type | [| 'none, 'regular, 'nop, 'transparent |],
+    data | (match {
+      'none => {},
+      'regular => {
+        behavior | HoldTapBehavior,
+        layer | LayerIndex | default = 0,
+        mods | Modifiers | default = {}
+      },
+      'nop => {
+        behavior | HoldTapBehavior,
+      },
+      'transparent => {}
+    }) type
+  } in
 
-let Tappable = {
-  type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent |],
-  data | (match {
-    'none => {},
-    'regular => {
-      hid_code | Uint8 | default = 0,
-      mods | Modifiers | default = {}
-    },
-    'sticky => {
-      mods | Modifiers | default = {},
-    },
-    'layer => {
-      operation | [| 'df, 'tog, 'to |],
-      layer | LayerIndex
-    },
-    'custom => {
-      type | [| 'fak, 'consumer, 'user, 'mouse |],
-      code | Uint 10
-    },
-    'transparent => {}
-  }) type
-} in
+  let Tappable = {
+    type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent |],
+    data | (match {
+      'none => {},
+      'regular => {
+        hid_code | Uint8 | default = 0,
+        mods | Modifiers | default = {}
+      },
+      'sticky => {
+        mods | Modifiers | default = {},
+      },
+      'layer => {
+        operation | [| 'df, 'tog, 'to |],
+        layer | LayerIndex
+      },
+      'custom => {
+        type | [| 'fak, 'consumer, 'user, 'mouse, 'macro |],
+        data | (match {
+          'macro => 
+            let MacroStep = {
+              inst | [| 'press, 'release, 'tap, 'wait |],
+              arg | (match {
+                'wait => { duration_ms | Uint16 },
+                _ => { keycode | Keycode },
+              }) inst
+            } in
+            { steps | Array MacroStep },
+          _ => { code | Uint 10 },
+        }) type
+      },
+      'transparent => {}
+    }) type
+  } in
 
-let rec Keycode = {
-  type | [| 'hold_tap, 'tap_dance |],
-  data | (match {
-    'hold_tap => {
-      hold | Holdable | default = { type = 'none, data = {} },
-      tap | Tappable | default = { type = 'none, data = {} }
-    },
-    'tap_dance => {
-      tapping_term_ms | Uint 12 | default = 200,
-      bindings | Array Keycode,
-      max_taps | std.contract.Sequence [ 
-        BoundedInt 2 17,
-        std.contract.Equal (std.array.length bindings)
-      ] | default = (std.array.length bindings)
-    }
-  }) type
-} in
+  {
+    type | [| 'hold_tap, 'tap_dance |],
+    data | (match {
+      'hold_tap => {
+        hold | Holdable | default = { type = 'none, data = {} },
+        tap | Tappable | default = { type = 'none, data = {} }
+      },
+      'tap_dance => {
+        tapping_term_ms | Uint 12 | default = 200,
+        bindings | Array Keycode,
+        max_taps | std.contract.Sequence [
+          BoundedInt 2 17,
+          std.contract.Equal (std.array.length bindings)
+        ] | default = (std.array.length bindings)
+      }
+    }) type
+  } in
 
 let Layer = (
   let ValidLength = std.contract.from_predicate (fun layer =>

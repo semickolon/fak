@@ -1,13 +1,29 @@
 let util = import "util_functions.ncl" in
-let { Set, Uint8, .. } = import "util_types.ncl" in
+let { Set, Uint8, Uint16, Uint32, .. } = import "util_types.ncl" in
 
 fun kb km side =>
 
 let keycodes = std.array.flatten km.layers in
 let layer_count = std.array.length km.layers in
 
+let keycode_is_hold_tap = fun kc => 
+  kc.type == 'hold_tap
+  && kc.data.tap.type != 'none
+  && kc.data.hold.type != 'none
+  && kc.data.hold.type != 'transparent in
+
+let keycode_is_macro = fun kc =>
+  kc.type == 'hold_tap
+  && kc.data.tap.type == 'custom
+  && kc.data.tap.data.type == 'macro in
+
+let keycodes_in_macro = fun kc =>
+  kc.data.tap.data.data.steps
+  |> std.array.filter (fun step => std.record.has_field "keycode" step.arg)
+  |> std.array.map (fun step => step.arg.keycode) in
+
 let deep_keycodes = std.array.flat_map (fun kc => match {
-  'hold_tap => [kc],
+  'hold_tap => [kc] @ (if keycode_is_macro kc then keycodes_in_macro kc else []),
   'tap_dance => kc.data.bindings
 } kc.type) keycodes in
 
@@ -29,12 +45,6 @@ let feature_keys_used | Set String = features_used
   |> std.array.flat_map (fun feature => feature.keys)
 in
 
-let keycode_is_hold_tap = fun kc => 
-  kc.type == 'hold_tap
-  && kc.data.tap.type != 'none
-  && kc.data.hold.type != 'none
-  && kc.data.hold.type != 'transparent in
-
 let _hold_tap_behaviors =
   let hold_tap_keycodes = std.array.filter keycode_is_hold_tap deep_keycodes in
   let all_behaviors = std.array.map (fun kc => kc.data.hold.data.behavior) hold_tap_keycodes in
@@ -44,6 +54,20 @@ let _tap_dance_bindings =
   let tap_dance_keycodes = std.array.filter (fun kc => kc.type == 'tap_dance) keycodes in
   let all_bindings = std.array.map (fun kc => kc.data.bindings) tap_dance_keycodes in
   util.array.unique all_bindings in
+
+let raw_macro_steps =
+  deep_keycodes
+  |> std.array.filter keycode_is_macro
+  |> std.array.map (fun kc => kc.data.tap.data.data.steps)
+  |> util.array.unique in
+
+let index_of_macro_steps = fun steps =>
+  raw_macro_steps
+  |> util.array.index_of steps
+  # We add 1 for the halt step
+  |> std.array.generate (fun i => 1 + std.array.length (std.array.at i raw_macro_steps))
+  |> std.array.fold_left (+) 0
+in
 
 let encode_modifiers = fun mods => std.array.reduce_left (+) (std.array.map (fun { field, value } => 
   let M = [
@@ -61,12 +85,17 @@ let encode_tappable = fun { type, data } => match {
     let op = match { 'df => 0, 'tog => 1, 'to => 2 } data.operation in
     192 + data.layer + util.bit.shift op 8,
   'custom =>
-    let m = util.bit.shift (util.bit.shift data.code (-2)) 2 in
-    224 + util.bit.shift (data.code - m) 3 + util.bit.shift m 6 + match {
+    let code = match {
+      'macro => index_of_macro_steps data.data.steps,
+      _ => data.data.code,
+    } data.type in
+    let m = util.bit.shift (util.bit.shift code (-2)) 2 in
+    224 + util.bit.shift (code - m) 3 + util.bit.shift m 6 + match {
       'fak => 0,
       'consumer => 1,
       'user => 2,
       'mouse => 3,
+      'macro => 4,
     } data.type,
   'transparent => 65535
 } type in
@@ -147,6 +176,36 @@ let is_custom_keys_of_type_used = fun type =>
       && kc.data.tap.data.type == type)
 in
 
+let encode_macro_step_arg = fun step =>
+  match {
+    'wait => step.arg.duration_ms,
+    _ => encode_kc step.arg.keycode,
+  } step.inst in
+
+let _macro_step_args =
+  raw_macro_steps
+  |> std.array.flatten
+  |> std.array.map encode_macro_step_arg
+  |> util.array.unique in
+
+let _macro_steps =
+  let halt_step = { inst = 0 } in
+  let encode_step = fun step => {
+    inst | Uint8 = match {
+      'press => 1,
+      'release => 2,
+      'tap => 3,
+      'wait => 4
+    } step.inst,
+    arg_idx | Uint16 = util.array.index_of (encode_macro_step_arg step) _macro_step_args,
+  } in
+
+  raw_macro_steps
+  |> std.array.map (std.array.map encode_step)
+  |> std.array.map (fun steps => steps @ [halt_step])
+  |> std.array.flatten
+in
+
 let _central_defines = {
   KEY_COUNT = std.array.length kb.keys + std.array.length km.virtual_keys,
   LAYER_COUNT = layer_count,
@@ -173,6 +232,9 @@ let _central_defines = {
   CONSUMER_KEYS_ENABLE = is_custom_keys_of_type_used 'consumer,
   USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
   MOUSE_KEYS_ENABLE = is_custom_keys_of_type_used 'mouse,
+
+  MACRO_KEYS_ENABLE = std.array.length _macro_steps > 0,
+  MACRO_STEP_ARG_COUNT = std.array.length _macro_step_args,
 
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
@@ -386,6 +448,9 @@ let rec _kscan | Kscan =
   
   combo_defs = if side == 'peripheral then [] else
     std.array.map (fun c => encode_combo c.data) combos,
+
+  macro_steps = if side =='peripheral then [] else _macro_steps,
+  macro_step_args = if side =='peripheral then [] else _macro_step_args,
 
   split_periph_key_indices = 
     if side != 'central then [] else

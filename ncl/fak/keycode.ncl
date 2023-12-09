@@ -60,7 +60,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
       TG = fun i => K i 'tog,
       TO = fun i => K i 'to,
     },
-    custom = let K = fun t c => K 'custom { type = t, code = c } in {
+    custom = let K = fun t c => K 'custom { type = t, data.code = c } in {
       fak = let K = fun code => K 'fak code in {
         RESET = K 0,
         BOOT = K 1,
@@ -126,6 +126,23 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
     },
     slow_release = { data.slow_release = true },
     require_prior_idle_ms = fun ms => { data.require_prior_idle_ms = ms },
+  },
+
+  macro = {
+    make = fun steps => {
+      type = 'hold_tap,
+      data.tap = {
+        type = 'custom,
+        data = {
+          type = 'macro,
+          data.steps = steps,
+        },
+      },
+    },
+    press = fun kc => { inst = 'press, arg.keycode = kc },
+    release = fun kc => { inst = 'release, arg.keycode = kc },
+    tap = fun kc => { inst = 'tap, arg.keycode = kc },
+    wait = fun ms => { inst = 'wait, arg.duration_ms = ms },
   },
   
   MO = fun i => hold.reg.layer i,

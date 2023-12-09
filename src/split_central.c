@@ -17,6 +17,9 @@
 #ifdef MOUSE_KEYS_ENABLE
 #include "mouse.h"
 #endif
+#ifdef MACRO_KEYS_ENABLE
+#include "macro.h"
+#endif
 
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
@@ -287,6 +290,10 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 #ifdef MOUSE_KEYS_ENABLE
         case 3: // Mouse
             return mouse_handle_key(custom_code, down);
+#endif
+#ifdef MACRO_KEYS_ENABLE
+        case 4: // Macro
+            return macro_handle_key(custom_code, down);
 #endif
         }
         break;

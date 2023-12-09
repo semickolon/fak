@@ -96,6 +96,16 @@ m%"
       "// (No combo defs)"
   }
 
+  %{
+    if std.array.length ir.macro_steps > 0 then
+      m%"
+        #include "macro.h"
+        __code fak_macro_step_t macro_steps[] = %{codegen.val.array ir.macro_steps};
+        __code uint32_t macro_step_args[MACRO_STEP_ARG_COUNT] = %{codegen.val.array ir.macro_step_args};
+      "%
+    else
+      "// (No macros)"
+  }
 "% in
 
 let c_file =
