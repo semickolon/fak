@@ -47,6 +47,13 @@ Check out the examples and see how keyboards and keymaps are defined in FAK, and
 1. [Intermediate - cheapis](ncl/examples/cheapis)
 1. [Advanced - zilpzalp](ncl/examples/zilpzalp)
 
+# Projects
+
+Let me know if you're using FAK on a project and I'd be happy to add it here!
+
+- [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series.
+- [CH552-44, CH552-48 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
+
 # Features
 
 ## Layers
