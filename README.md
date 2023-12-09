@@ -291,6 +291,91 @@ tap.custom.mouse.WH_U   # Scroll up
 tap.custom.mouse.WH_D   # Scroll down
 ```
 
+You can customize mouse settings in your keymap defintion.
+
+```
+{
+  mouse = {
+    move_speed = 4,           # Higher = faster move
+    scroll_interval_ms = 20,  # Lower = faster scroll
+  },
+  layers = ...
+}
+```
+
+## Macros
+
+Yep. Macros.
+
+```
+# Macro for word selection
+# Ctrl+Right, Ctrl+Left, Ctrl+Shift+Right
+
+let kc = tap.reg.kc in
+let tm = tap.reg.mod in
+let md = hold.reg.mod in
+
+let word_select = macro.make [
+  macro.press md.lctl,
+  macro.tap kc.RGHT,
+  macro.tap kc.LEFT,
+  macro.tap (kc.RGHT & tm.lsft),
+  macro.release md.lctl,
+] in
+```
+
+Here are the following possible steps or instructions that can go into `macro.make [...]`. The `tap` does a `press` then a `release` in just one step.
+
+```
+macro.press [keycode]
+macro.release [keycode]
+macro.tap [keycode]
+macro.wait [duration in ms, up to 65535]
+```
+
+Parameterizing macros is immediately possible thanks to Nickel, so there is no need to learn any other constructs. The following is an example that emulates[^3] `SEND_STRING` from QMK. Unlike QMK, this is not a C macro. It's simply a Nickel function that takes in a string and returns a macro.
+
+```
+let macro_send_string = fun str =>
+  let steps =
+    std.string.uppercase str
+    |> std.string.characters
+    |> std.array.map (fun char => macro.tap tap.reg.kc."%{char}")
+  in
+  macro.make steps
+in
+
+let my_macro_1 = macro_send_string "fak yeah" in
+let my_macro_2 = macro_send_string "memories...do not open" in
+```
+
+As of writing, there are no checks enforced in Nickel to check if all your `press`es are eventually `release`d. That is, it's possible to leave your `press`es pressed even after the macro is fully done. Take note of this, especially if you have weird behavior after activating a macro. This is all because I honestly don't know if checks should even be enforced or if there are actual use cases for leaving keys pressed after a macro.
+
+[^3]: To keep the example short, it does not *fully* emulate `SEND_STRING`. Most notably, it lacks support for shifted characters/keys like `ABC` and `!^$`.
+
+## Conditional layers
+
+Inspired by ZMK, this is a generalization of what's usually known as "tri-layers" where activating at least two specified layers (commonly known as "lower" and "raise") activate another layer ("adjust").
+
+```
+{
+  conditional_layers = {
+    # The key ("3") specifies the layer that will be activated when the
+    # specified layers ([1, 2]) are all activated
+    "3" = [1, 2],
+
+    # Nickel does not support integers as keys, as far as I know
+    # So that's why we have to use a string for now
+
+    # There can be more than two activating layers. Go crazy.
+    "9" = [3, 5, 7, 8],
+  },
+  layers = ...
+}
+```
+
+Now, conditional layers (such as 3 and 9 in the example above) are fully controlled by the firmware and FAK doesn't want your grubby little fingers on them. Checks are enforced in Nickel, so you cannot activate conditional layers yourself any other way, like `hold.reg.layer X` where X is a conditional layer.
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
