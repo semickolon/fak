@@ -76,6 +76,13 @@ let rec _bit = {
 let rec _record = {
   only_if | Bool -> Dyn -> Dyn =
     fun cond record => if cond then record else {},
+  
+  at_or | Dyn -> String -> Dyn -> Dyn =
+    fun record field default_value =>
+      if std.record.has_field field record then
+        record."%{field}"
+      else
+        default_value,
 } in
 
 {

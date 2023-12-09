@@ -1,5 +1,6 @@
 let { MAX_LAYER_COUNT, .. } = import "constants.ncl" in
 let { Uint, Uint8, Uint16, BoundedInt, Set, .. } = import "util_types.ncl" in
+let util = import "util_functions.ncl" in
 
 let Uint13 = Uint 13 in
 
@@ -17,7 +18,7 @@ let Modifiers = {
 } in
 
 let physical_key_count = std.array.length kb.keys in
-let virtual_key_count = std.array.length km.virtual_keys in
+let virtual_key_count = std.array.length (util.record.at_or km "virtual_keys" []) in
 let key_count = physical_key_count + virtual_key_count in
 
 let LayerIndex = BoundedInt 0 (std.array.length km.layers) in
