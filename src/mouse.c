@@ -2,10 +2,6 @@
 #include "usb.h"
 #include "time.h"
 
-// TODO: Expose these to Nickel
-#define MOUSE_MOVE_SPEED 4
-#define MOUSE_SCROLL_INTERVAL_MS 20
-
 // TODO: Convert to __xdata
 int8_t scroll_direction = 0;
 uint16_t scroll_at_time = 0;

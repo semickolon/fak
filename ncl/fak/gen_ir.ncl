@@ -231,7 +231,10 @@ let _central_defines = {
   FAK_KEYS_ENABLE = is_custom_keys_of_type_used 'fak,
   CONSUMER_KEYS_ENABLE = is_custom_keys_of_type_used 'consumer,
   USER_KEYS_ENABLE = is_custom_keys_of_type_used 'user,
+
   MOUSE_KEYS_ENABLE = is_custom_keys_of_type_used 'mouse,
+  MOUSE_MOVE_SPEED = km.mouse.move_speed,
+  MOUSE_SCROLL_INTERVAL_MS = km.mouse.scroll_interval_ms,
 
   MACRO_KEYS_ENABLE = std.array.length _macro_steps > 0,
   MACRO_STEP_ARG_COUNT = std.array.length _macro_step_args,

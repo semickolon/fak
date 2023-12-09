@@ -181,5 +181,9 @@ let VirtualKey = {
     layers | Layers,
     conditional_layers | ConditionalLayers | default = {},
     virtual_keys | Set VirtualKey | default = [],
+    mouse = {
+      move_speed | Uint8 | default = 4,
+      scroll_interval_ms | Uint16 | default = 20,
+    },
   }
 }
