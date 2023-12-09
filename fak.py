@@ -116,7 +116,7 @@ def wait_for_device():
 # TODO: Implement better flashing experience
 # - Automatically flash whatever side(s) needs to reflash
 def subcmd_flash_central():
-    meson_configure()
+    subcmd_compile()
     wait_for_device()
     subprocess.run(['meson', 'compile', 'flash_central'], check=True, cwd=BUILD_DIR)
 
@@ -128,6 +128,7 @@ def subcmd_flash_peripheral():
         print("Error: Can't flash peripheral. The keyboard is not a split.")
         sys.exit(1)
 
+    subcmd_compile()
     wait_for_device()
     subprocess.run(['meson', 'compile', 'flash_peripheral'], check=True, cwd=BUILD_DIR)
 
