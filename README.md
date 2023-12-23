@@ -1,6 +1,8 @@
-# F.A. Keyboard Firmware
+# 🎉 F.A. Keyboard Firmware
 
 A keyboard firmware for the CH55x series.
+
+🥳 **Come join our [Discord server](https://discord.gg/4Ev8GFZNR2)!**
 
 ## What the FAK?
 
@@ -51,7 +53,7 @@ Check out the examples and see how keyboards and keymaps are defined in FAK, and
 
 Let me know if you're using FAK on a project and I'd be happy to add it here!
 
-- [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series.
+- [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
 - [CH552-44, CH552-48 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
 
 # Features
