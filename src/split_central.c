@@ -298,8 +298,25 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
         switch (custom_type) {
 #ifdef FAK_KEYS_ENABLE
         case 0: // FAK-specific
-            if      (custom_code == 0) sw_reset();
-            else if (custom_code == 1) bootloader();
+            switch (custom_code) {
+            case 0:
+                sw_reset();
+                break;
+            case 1:
+                bootloader();
+                break;
+#ifdef CAPS_WORD_ENABLE
+            case 2:
+                caps_word_on();
+                break;
+            case 3:
+                caps_word_off();
+                break;
+            case 4:
+                if (down) caps_word_toggle();
+                break;
+#endif
+            }
             break;
 #endif
 #ifdef CONSUMER_KEYS_ENABLE
@@ -318,13 +335,6 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 #ifdef MACRO_KEYS_ENABLE
         case 4: // Macro
             return macro_handle_key(custom_code, down);
-#endif
-#ifdef CAPS_WORD_ENABLE
-        case 5: // Caps Word
-            if (down) {
-                caps_word_toggle();
-            }
-            break;
 #endif
         }
         break;
