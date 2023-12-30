@@ -5,6 +5,8 @@
 
 #include "ch552.h"
 
+void caps_word_on();
+void caps_word_off();
 void caps_word_toggle();
 
 __bit caps_word_active();

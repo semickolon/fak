@@ -7,6 +7,14 @@
 
 __bit caps_word_state = 0;
 
+void caps_word_on() {
+    caps_word_state = 1;
+}
+
+void caps_word_off() {
+    caps_word_state = 0;
+}
+
 void caps_word_toggle() {
     caps_word_state = !caps_word_state;
 }
