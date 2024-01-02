@@ -176,6 +176,15 @@ let is_custom_keys_of_type_used = fun type =>
       && kc.data.tap.data.type == type)
 in
 
+let is_custom_keys_of_type_of_keycodes_used = fun type keycodes =>
+  deep_keycodes
+  |> std.array.any (fun kc =>
+      kc.type == 'hold_tap
+      && kc.data.tap.type == 'custom
+      && kc.data.tap.data.type == type
+      && std.array.elem kc.data.tap.data.data.code keycodes)
+in
+
 let encode_macro_step_arg = fun step =>
   match {
     'wait => step.arg.duration_ms,
@@ -240,6 +249,8 @@ let _central_defines = {
   MACRO_STEP_ARG_COUNT = std.array.length _macro_step_args,
 
   CONDITIONAL_LAYER_COUNT = std.record.length km.conditional_layers,
+
+  CAPS_WORD_ENABLE = is_custom_keys_of_type_of_keycodes_used 'fak [2, 3, 4],
 
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos

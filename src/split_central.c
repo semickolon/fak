@@ -20,6 +20,9 @@
 #ifdef MACRO_KEYS_ENABLE
 #include "macro.h"
 #endif
+#ifdef CAPS_WORD_ENABLE
+#include "caps_word.h"
+#endif
 
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
@@ -84,6 +87,26 @@ static void register_mods(uint8_t mods, uint8_t down) {
     }
 
     uint8_t current_mods = USB_EP1I_read(0);
+
+    if (current_mods != new_mods) {
+        USB_EP1I_write(0, new_mods);
+    }
+}
+
+static void write_weak_mods(uint8_t mods, uint8_t down) {
+    uint8_t current_mods = USB_EP1I_read(0);
+
+    uint8_t new_mods = 0;
+
+    if (down) {
+        new_mods = current_mods | mods;
+    } else {
+        for (uint8_t i = 8; i;) {
+            i--;
+
+            new_mods |= ((strong_mods_ref_count[i] > 0) << i);
+        }
+    }
 
     if (current_mods != new_mods) {
         USB_EP1I_write(0, new_mods);
@@ -236,6 +259,7 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 
     uint8_t tap_mods = (key_code & KEY_CODE_TAP_MODS_MASK) >> 8;
     uint8_t tap_code = (key_code & KEY_CODE_TAP_CODE_MASK);
+    uint8_t weak_mods = 0;
 
     switch (tap_code & 0xE0) {
 #ifdef STICKY_MODS_ENABLE
@@ -274,8 +298,25 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
         switch (custom_type) {
 #ifdef FAK_KEYS_ENABLE
         case 0: // FAK-specific
-            if      (custom_code == 0) sw_reset();
-            else if (custom_code == 1) bootloader();
+            switch (custom_code) {
+            case 0:
+                sw_reset();
+                break;
+            case 1:
+                bootloader();
+                break;
+#ifdef CAPS_WORD_ENABLE
+            case 2:
+                caps_word_on();
+                break;
+            case 3:
+                caps_word_off();
+                break;
+            case 4:
+                if (down) caps_word_toggle();
+                break;
+#endif
+            }
             break;
 #endif
 #ifdef CONSUMER_KEYS_ENABLE
@@ -298,10 +339,22 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
         }
         break;
 #endif
-    
+
     default:
+
+#ifdef CAPS_WORD_ENABLE
+        if (down && tap_code && caps_word_active()) {
+            uint8_t shift_pressed = (strong_mods_ref_count[1] > 0) | tap_mods & 0x02;
+            if (caps_word_handle_key(tap_code, shift_pressed)) {
+                weak_mods |= 0x02; // press shift key
+            }
+        }
+#endif
+
+        if (down && weak_mods) write_weak_mods(weak_mods, 1);
         if (tap_mods) register_mods(tap_mods, down);
         if (tap_code) register_code(tap_code, down);
+        if (!down) write_weak_mods(weak_mods, 0);
     }
 }
 
