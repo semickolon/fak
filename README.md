@@ -24,7 +24,7 @@ Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E
 
 Requirements:
 - [`sdcc`](https://sourceforge.net/projects/sdcc/files)
-- [`nickel` 1.2.1](https://github.com/tweag/nickel/releases/tag/1.2.1)
+- [`nickel` 1.3.0](https://github.com/tweag/nickel/releases/tag/1.3.0)
 - [`python` 3.11+](https://www.python.org/downloads)
 - [`meson`](https://mesonbuild.com/)
 - [`ninja`](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
@@ -55,6 +55,7 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 
 - [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
 - [CH552-44, CH552-48 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
+- [CH552-36 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-36-low-budget-36-key-split-keyboard-with-smt-components). Split keyboard built on a sub-100x100 mm2 PCB with SMT components.
 
 # Features
 
