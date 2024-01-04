@@ -78,7 +78,7 @@ static void register_mods(uint8_t mods, uint8_t down) {
         if (mods & (1 << i)) {
             if (down) {
                 strong_mods_ref_count[i] += 1;
-            } else {
+            } else if (strong_mods_ref_count[i] > 0) {
                 strong_mods_ref_count[i] -= 1;
             }
         }
