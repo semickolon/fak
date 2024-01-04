@@ -23,14 +23,16 @@ Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E
 # Getting started
 
 Requirements:
-- [`sdcc`](https://sourceforge.net/projects/sdcc/files)
+- [`sdcc` 4.2.0](https://sourceforge.net/projects/sdcc/files)
 - [`nickel` 1.3.0](https://github.com/tweag/nickel/releases/tag/1.3.0)
-- [`python` 3.11+](https://www.python.org/downloads)
-- [`meson`](https://mesonbuild.com/)
-- [`ninja`](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
+- [`python` 3.11](https://www.python.org/downloads)
+- [`meson` 1.2.3](https://mesonbuild.com/)
+- [`ninja` 1.11.1](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
 - [`wchisp`](https://github.com/ch32-rs/wchisp/releases/tag/nightly)
 
-If you use Nix, you can simply use the provided flakes.
+Versions listed above are from the Nix flake, representative of my dev environment. You can probably use versions later than these just fine, but if you encounter problems, having these exact versions might help.
+
+If you use Nix, you can simply use the provided flake.
 
 1. Clone this repo
 1. Edit `ncl/keyboard.ncl` and `ncl/keymap.ncl`
