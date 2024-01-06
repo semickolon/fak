@@ -20,6 +20,8 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E but it should work. CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
 
+:eyes: **CH58x (BLE)** implementation written in Zig is a work-in-progress here: https://github.com/semickolon/fak-kiwi
+
 # Getting started
 
 Requirements:
@@ -313,6 +315,20 @@ You can customize mouse settings in your keymap defintion.
   },
   layers = ...
 }
+```
+
+## Caps word
+
+Yep. Caps word.
+
+- When active, tapping any key except the alphabetical keys, numbers, backspace, delete deactivates caps word state.
+- When active, tapping alphabetical keys sends the shifted alphabetical keys; tapping `-` sends `_`.
+- Caps word state only remains active if a key was tapped in the previous 5 seconds.
+
+```
+tap.custom.fak.CWTG     # Caps word toggle
+tap.custom.fak.CWON     # Caps word on
+tap.custom.fak.CWOFF    # Caps word off
 ```
 
 ## Macros
