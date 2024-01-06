@@ -1,5 +1,5 @@
-let { MatrixKey, .. } = import "../../fak/keyboard.ncl" in
-let { CH552T, .. } = import "../../fak/mcus.ncl" in
+let { MatrixKey, .. } = import "../../ncl/fak/keyboard.ncl" in
+let { CH552T, .. } = import "../../ncl/fak/mcus.ncl" in
 
 {
   mcu = CH552T,
