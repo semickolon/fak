@@ -1,4 +1,4 @@
-let { tap, hold, td, combo, macro, ..} = import "fak/keycode.ncl" in
+let { tap, hold, td, combo, macro, ..} = import "../../ncl/fak/keycode.ncl" in
 
 # convenience aliases
 # taps
