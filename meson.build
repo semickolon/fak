@@ -25,7 +25,7 @@ sources_peripheral = [
 cc = find_program('sdcc', required : true)
 nickel = find_program('nickel', required : true)
 python = find_program('python', required : true)
-wchisp = find_program('wchisp', required : false)
+wchisp = find_program('wchisp', required : false, disabler : true)
 
 sides = ['central']
 if get_option('split')
