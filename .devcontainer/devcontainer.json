@@ -1,0 +1,24 @@
+{
+  "image": "jmgilman/dev-container",
+  "mounts": [
+    "source=nix-store,target=/nix,type=volume",
+    "source=vs-exts,target=/home/vscode/.vscode-server/extensions,type=volume",
+    "source=vs-exts-in,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
+  ],
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Tweag.vscode-nickel"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/home/vscode/.nix-profile/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}
