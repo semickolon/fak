@@ -34,10 +34,10 @@
     {
       devShells.${system} = {
         default = pkgs.mkShell {
-          packages = contents ++ [ wchisp ];
-        };
-        vsdevcontainer = pkgs.mkShell {
           packages = contents;
+        };
+        full = pkgs.mkShell {
+          packages = contents ++ [ wchisp ];
         };
       };
 

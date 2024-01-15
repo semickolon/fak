@@ -51,7 +51,7 @@ For easier setup, you can also use the provided Dev Container.
 
 1. Clone this repo
 1. Create a new codespace
-1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands.
+1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands
 
 The only thing that won't work from a remote setup is, of course, flashing. You'll have to do that locally with `wchisp`. Thankfully, `wchisp` provides prebuilt binaries so getting that set up is very easy.
 
