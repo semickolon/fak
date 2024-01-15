@@ -45,6 +45,21 @@ If you use Nix, you can simply use the provided flake.
 
 **TL;DR:** Don't use Meson directly. `fak.py` is your friend. Makes life easy.
 
+## Dev Container
+
+For easier setup, you can also use the provided Dev Container.
+
+1. Clone this repo
+1. Create a new codespace
+1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands.
+
+The only thing that won't work from a remote setup is, of course, flashing. You'll have to do that locally with `wchisp`. Thankfully, `wchisp` provides prebuilt binaries so getting that set up is very easy.
+
+1. In your codespace, `python fak.py compile`
+1. Download the `.ihx` file(s) in `build/` to your local machine
+1. In your local machine, `wchisp flash central.ihx`
+1. And then if you have a split, `wchisp flash peripheral.ihx`
+
 ## Examples
 
 Check out the examples and see how keyboards and keymaps are defined in FAK, and how powerful and crazy it can get.
