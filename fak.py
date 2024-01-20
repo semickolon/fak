@@ -17,7 +17,7 @@ SUBCOMMAND = sys.argv[1]
 def compute_hash_sig():
     h = hashlib.sha256()
 
-    for filepath in glob.glob('ncl/**/*.ncl', recursive=True):
+    for filepath in glob.glob('./**/*.ncl', recursive=True):
         with open(filepath, 'r') as f:
             h.update(f.read().encode('utf-8'))
 

@@ -139,8 +139,8 @@ let combos_base = [
     ] @ combos_base,
     # NAV
     [
-                  kc.INS,       kc.UP,        kc.BSPC,      media.VOLU,   mouse.LEFT, mouse.DOWN, mouse.UP, mouse.RGHT,
-      md.lctl,    kc.LEFT & ht, kc.DOWN & ht, kc.RGHT & ht, media.VOLD,   media.MUTE, kc.LEFT,    kc.DOWN,  kc.UP,      kc.RGHT,
+                  md.lalt,      mouse.UP,     md.lsft,      media.VOLU,   cu.CUT,     cu.COPY,    cu.PSTE,  tt & ht,
+      md.lctl,    mouse.LEFT,   mouse.DOWN,   mouse.RGHT,   media.VOLD,   media.MUTE, kc.LEFT,    kc.DOWN,  kc.UP,      kc.RGHT,
                   kc.HOME,      kc.PGDN,      kc.END,                                 kc.HOME,    kc.PGUP,  kc.END,
                                               tt & ht,      tt & ht,      mouse.BTN1, mouse.BTN2,
     ] @ combos_base,
