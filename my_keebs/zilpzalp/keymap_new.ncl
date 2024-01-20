@@ -125,9 +125,9 @@ let combos_base = [
   layers = [
     # ALPHAS
     [
-               kc.W,    kc.F,    kc.P,    kc.B,    kc.J,    kc.L,    kc.U,    kc.Y,
+               kc.W,    kc.F,    kc.P,    kc.B,    kc.J,    kc.M,    kc.COMM, kc.DOT,
       hrmLP,   hrmLR,   hrmLM,   hrmLI,   hrmLS,   hrmRS,   hrmRI,   hrmRM,   hrmRR,   hrmRP,
-               kc.C,    kc.G,    kc.D,                      kc.M,    kc.COMM, kc.DOT,
+               kc.C,    kc.G,    kc.D,                      kc.L,    kc.U,    kc.Y,
                                  ltLTT,   ltLTR,   ltRTR,   ltRTT,
     ] @ combos_base,
     # NUM
