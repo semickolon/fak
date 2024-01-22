@@ -4,6 +4,8 @@ A keyboard firmware for the CH55x series.
 
 🥳 **Come join our [Discord server](https://discord.gg/4Ev8GFZNR2)!**
 
+<a href="https://www.buymeacoffee.com/semickolon"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=semickolon&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff" /></a>
+
 ## What the FAK?
 
 FAK stands for F.A. Keyboard. F.A. are the initials of a person who silently crashed into my party and did not even make their presence known to me or my family. **You know who you are.**
