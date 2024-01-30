@@ -30,6 +30,20 @@
 #define USB_STRINGS_ENABLE
 #endif
 
+#define ITF_NUM_KEYBOARD 0
+
+#ifdef CONSUMER_KEYS_ENABLE
+#define ITF_NUM_CONSUMER 1
+#endif
+
+#ifdef MOUSE_KEYS_ENABLE
+#ifdef CONSUMER_KEYS_ENABLE
+#define ITF_NUM_MOUSE 2
+#else
+#define ITF_NUM_MOUSE 1
+#endif
+#endif
+
 typedef struct {
     USB_CFG_DESCR cfg_descr;
     USB_ITF_DESCR itf_keyboard_descr;
@@ -49,7 +63,11 @@ typedef struct {
 
 __code uint8_t *p_usb_tx;
 __xdata __at(XADDR_USB_TX_LEN) uint8_t usb_tx_len;
-__bit usb_hid_protocol;
+
+__bit hid_protocol_keyboard;
+#ifdef MOUSE_KEYS_ENABLE
+__bit hid_protocol_mouse;
+#endif
 
 __xdata __at(XADDR_USB_EP0) uint8_t EP0_buffer[USB_EP0_SIZE];
 __xdata __at(XADDR_USB_EP1) uint8_t EP1I_buffer[USB_EP1_SIZE];
@@ -92,13 +110,13 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
         .bNumInterfaces = USB_NUM_INTERFACES,
         .bConfigurationValue = 1,
         .iConfiguration = 0,
-        .bmAttributes = (1 << 7),
+        .bmAttributes = 0xC0,
         .bMaxPower = 50
     },
     .itf_keyboard_descr = {
         .bLength = sizeof(USB_ITF_DESCR),
         .bDescriptorType = USB_DESCR_TYP_INTERF,
-        .bInterfaceNumber = 0,
+        .bInterfaceNumber = ITF_NUM_KEYBOARD,
         .bAlternateSetting = 0,
         .bNumEndpoints = 1,
         .bInterfaceClass = USB_DEV_CLASS_HID,
@@ -130,7 +148,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
     .itf_consumer_descr = {
         .bLength = sizeof(USB_ITF_DESCR),
         .bDescriptorType = USB_DESCR_TYP_INTERF,
-        .bInterfaceNumber = 1,
+        .bInterfaceNumber = ITF_NUM_CONSUMER,
         .bAlternateSetting = 0,
         .bNumEndpoints = 1,
         .bInterfaceClass = USB_DEV_CLASS_HID,
@@ -163,11 +181,7 @@ __code USB_CFG1_DESCR USB_CONFIG1_DESCR = {
     .itf_mouse_descr = {
         .bLength = sizeof(USB_ITF_DESCR),
         .bDescriptorType = USB_DESCR_TYP_INTERF,
-#ifdef CONSUMER_KEYS_ENABLE
-        .bInterfaceNumber = 2,
-#else
-        .bInterfaceNumber = 1,
-#endif
+        .bInterfaceNumber = ITF_NUM_MOUSE,
         .bAlternateSetting = 0,
         .bNumEndpoints = 1,
         .bInterfaceClass = USB_DEV_CLASS_HID,
@@ -357,18 +371,18 @@ inline static void USB_EP0_SETUP() {
 #endif
                 case USB_DESCR_TYP_REPORT:
                     switch (setupPacket->wIndexL) {
-                    case 0:
+                    case ITF_NUM_KEYBOARD:
                         usb_tx_len = sizeof(USB_HID_REPORT_DESCR);
                         p_usb_tx = (__code uint8_t *) &USB_HID_REPORT_DESCR;
                         break;
 #ifdef CONSUMER_KEYS_ENABLE
-                    case 1:
+                    case ITF_NUM_CONSUMER:
                         usb_tx_len = sizeof(USB_HID_CONSUMER_REPORT_DESCR);
                         p_usb_tx = (__code uint8_t *) &USB_HID_CONSUMER_REPORT_DESCR;
                         break;
 #endif
 #ifdef MOUSE_KEYS_ENABLE
-                    case 2:
+                    case ITF_NUM_MOUSE:
                         usb_tx_len = sizeof(USB_HID_MOUSE_REPORT_DESCR);
                         p_usb_tx = (__code uint8_t *) &USB_HID_MOUSE_REPORT_DESCR;
                         break;
@@ -406,28 +420,63 @@ inline static void USB_EP0_SETUP() {
             return;
         
         case HID_GET_REPORT:
-            if (setupPacket->bRequestType == (USB_REQ_TYP_IN | USB_REQ_TYP_CLASS | USB_REQ_RECIP_INTERF)
-             && setupPacket->wValueH == 1) {
-                for (uint8_t i = 0; i < 8; i++) {
-                    EP0_buffer[i] = EP1I_buffer[i];
+            if (setupPacket->bRequestType == (USB_REQ_TYP_IN | USB_REQ_TYP_CLASS | USB_REQ_RECIP_INTERF)) {
+                switch (setupPacket->wIndexL) {
+                case ITF_NUM_KEYBOARD:
+                    for (uint8_t i = 0; i < USB_EP1_SIZE; i++) {
+                        EP0_buffer[i] = EP1I_buffer[i];
+                    }
+                    UEP0_T_LEN = USB_EP1_SIZE;
+                    return;
+#ifdef CONSUMER_KEYS_ENABLE
+                case ITF_NUM_CONSUMER:
+                    for (uint8_t i = 0; i < USB_EP2_SIZE; i++) {
+                        EP0_buffer[i] = ((uint8_t*) EP2I_buffer)[i];
+                    }
+                    UEP0_T_LEN = USB_EP2_SIZE;
+                    return;
+#endif
+#ifdef MOUSE_KEYS_ENABLE
+                case ITF_NUM_MOUSE:
+                    for (uint8_t i = 0; i < USB_EP3_SIZE; i++) {
+                        EP0_buffer[i] = EP3I_buffer[i];
+                    }
+                    UEP0_T_LEN = USB_EP3_SIZE;
+                    return;
+#endif
                 }
-                UEP0_T_LEN = 8;
-                return;
             }
             break;
         
         case HID_GET_PROTOCOL:
             if (setupPacket->bRequestType == (USB_REQ_TYP_IN | USB_REQ_TYP_CLASS | USB_REQ_RECIP_INTERF)) {
-                EP0_buffer[0] = usb_hid_protocol;
-                UEP0_T_LEN = 1;
-                return;
+                switch (setupPacket->wIndexL) {
+                case ITF_NUM_KEYBOARD:
+                    EP0_buffer[0] = hid_protocol_keyboard;
+                    UEP0_T_LEN = 1;
+                    return;
+#ifdef MOUSE_KEYS_ENABLE
+                case ITF_NUM_MOUSE:
+                    EP0_buffer[0] = hid_protocol_mouse;
+                    UEP0_T_LEN = 1;
+                    return;
+#endif
+                }
              }
              break;
         
         case HID_SET_PROTOCOL:
             if (setupPacket->bRequestType == (USB_REQ_TYP_OUT | USB_REQ_TYP_CLASS | USB_REQ_RECIP_INTERF)) {
-                usb_hid_protocol = setupPacket->wValueL;
-                return;
+                switch (setupPacket->wIndexL) {
+                case ITF_NUM_KEYBOARD:
+                    hid_protocol_keyboard = setupPacket->wValueL;
+                    return;
+#ifdef MOUSE_KEYS_ENABLE
+                case ITF_NUM_MOUSE:
+                    hid_protocol_mouse = setupPacket->wValueL;
+                    return;
+#endif
+                }
              }
              break;
     }
@@ -577,7 +626,10 @@ void USB_init() {
     }
 
     usb_tx_len = 0;
-    usb_hid_protocol = 1;
+    hid_protocol_keyboard = 1;
+#ifdef MOUSE_KEYS_ENABLE
+    hid_protocol_mouse = 1;
+#endif
 
     // Main init
     USB_CTRL = bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN; 
