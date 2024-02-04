@@ -22,8 +22,6 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E but it should work. CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
 
-:eyes: **CH58x (BLE)** implementation written in Zig is a work-in-progress here: https://github.com/semickolon/fak-kiwi
-
 # Getting started
 
 Requirements:
@@ -75,8 +73,9 @@ Check out the examples and see how keyboards and keymaps are defined in FAK, and
 Let me know if you're using FAK on a project and I'd be happy to add it here!
 
 - [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
-- [CH552-44, CH552-48 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
+- [CH552-44, CH552-48, CH552-48-LPR by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
 - [CH552-36 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-36-low-budget-36-key-split-keyboard-with-smt-components). Split keyboard built on a sub-100x100 mm2 PCB with SMT components.
+- [Ch55p34 by doesntfazer](https://github.com/doesntfazer/Ch55p34-keyboard). 34-key column-staggered unibody keyboard with standalone CH552T.
 
 # Features
 
@@ -219,9 +218,8 @@ let side_periph = {
 }
 ```
 
-Current limitations:
+Limitations:
 - Only UART0 is supported. UART1 is not yet supported.
-- No bitbang implementation yet, which would allow for half-duplex single-wire comms on any[^2] pin at the cost of firmware size. Hardware UART is full-duplex two-wire and only available on certain pins.
 - Central and peripheral sides are fixed. That is, you can't plug it in on the peripheral side. Well, you can, but of course it won't work as a USB keyboard.
 
 [^2]: Almost any pin. USB data pins obviously won't work here.
@@ -273,7 +271,7 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 }
 ```
 
-Current limitations:
+Limitations:
 - Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos (e.g., `[2, 3]` and `[3, 4, 5]`) are supported though, as shown in the example above.
 
 ## Sticky mods
@@ -302,7 +300,7 @@ let best_shift_ever =
 
 ## Mouse keys
 
-Yep. Mouse keys. Only constant speed is implemented so far. No acceleration or other modes yet.
+Yep. Mouse keys. Constant speed.
 
 ```
 # Mouse buttons
@@ -428,5 +426,3 @@ Now, conditional layers (such as 3 and 9 in the example above) are fully control
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
-
-This project is still at its very early stages though, so some error cases won't be caught yet. Not yet 100% foolproof. Also, the error messages don't look very helpful in the meantime.
