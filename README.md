@@ -421,6 +421,10 @@ Inspired by ZMK, this is a generalization of what's usually known as "tri-layers
 
 Now, conditional layers (such as 3 and 9 in the example above) are fully controlled by the firmware and FAK doesn't want your grubby little fingers on them. Checks are enforced in Nickel, so you cannot activate conditional layers yourself any other way, like `hold.reg.layer X` where X is a conditional layer.
 
+## Repeat key
+
+`tap.custom.fak.REP` repeats the last reported non-modifier keycode including modifiers when it was pressed. Basically, tapping a modifier like Ctrl alone will not be repeated by the repeat key, but Ctrl-A will be, since it has a non-modifier keycode (A).
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).

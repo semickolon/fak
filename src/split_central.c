@@ -34,6 +34,13 @@ __xdata __at(XADDR_PENDING_STICKY_MODS) uint8_t pending_sticky_mods = 0;
 __xdata __at(XADDR_APPLIED_STICKY_MODS) uint8_t applied_sticky_mods = 0;
 #endif
 
+#ifdef REPEAT_KEY_ENABLE
+__xdata __at(XADDR_REPEAT_KEY + 0) uint8_t pending_repeat_mods = 0;
+__xdata __at(XADDR_REPEAT_KEY + 1) uint8_t pending_repeat_code = 0;
+__xdata __at(XADDR_REPEAT_KEY + 2) uint8_t applied_repeat_mods = 0;
+__xdata __at(XADDR_REPEAT_KEY + 3) uint8_t applied_repeat_code = 0;
+#endif
+
 #ifdef SPLIT_ENABLE
 extern __code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT];
 #endif
@@ -132,6 +139,13 @@ static void register_code(uint8_t key_code, uint8_t down) {
     } else if (applied_sticky_mods) {
         register_mods(applied_sticky_mods, 0);
         applied_sticky_mods = 0;
+    }
+#endif
+
+#ifdef REPEAT_KEY_ENABLE
+    if (down) {
+        pending_repeat_mods = USB_EP1I_read(0);
+        pending_repeat_code = key_code;
     }
 #endif
 
@@ -239,6 +253,18 @@ void push_key_event(uint8_t key_idx, uint8_t pressed) {
     key_event_queue_bpush(&key_ev);
 }
 
+#ifdef REPEAT_KEY_ENABLE
+void handle_repeat_key(uint8_t down) {
+    if (down) {
+        applied_repeat_mods = pending_repeat_mods;
+        applied_repeat_code = pending_repeat_code;
+    }
+
+    register_mods(applied_repeat_mods, down);
+    register_code(applied_repeat_code, down);
+}
+#endif
+
 void handle_non_future(uint32_t key_code, uint8_t down) {
     if ((key_code & KEY_CODE_HOLD_NO_OP) != KEY_CODE_HOLD_NO_OP) {
 #if LAYER_COUNT > 1
@@ -314,6 +340,11 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
                 break;
             case 4:
                 if (down) caps_word_toggle();
+                break;
+#endif
+#ifdef REPEAT_KEY_ENABLE
+            case 5:
+                handle_repeat_key(down);
                 break;
 #endif
             }
