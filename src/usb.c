@@ -570,6 +570,14 @@ inline static void USB_EP3_IN() {
 }
 #endif
 
+inline void USB_reset() {
+    usb_tx_len = 0;
+    hid_protocol_keyboard = 1;
+#ifdef MOUSE_KEYS_ENABLE
+    hid_protocol_mouse = 1;
+#endif
+}
+
 #pragma save
 #pragma nooverlay
 void USB_interrupt() {
@@ -604,6 +612,21 @@ void USB_interrupt() {
 
         UIF_TRANSFER = 0;
     }
+
+    if (UIF_BUS_RST) {
+        USB_reset();
+
+        UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
+        USB_DEV_AD   = 0;
+        UIF_SUSPEND  = 0;
+        UIF_TRANSFER = 0;
+        UIF_BUS_RST  = 0;
+    }
+        
+    if (UIF_SUSPEND) {
+        UIF_SUSPEND = 0;
+        if (!(USB_MIS_ST & bUMS_SUSPEND)) USB_INT_FG = 0xFF;
+    }
 }
 #pragma restore
 
@@ -625,11 +648,7 @@ void USB_init() {
 #endif
     }
 
-    usb_tx_len = 0;
-    hid_protocol_keyboard = 1;
-#ifdef MOUSE_KEYS_ENABLE
-    hid_protocol_mouse = 1;
-#endif
+    USB_reset();
 
     // Main init
     USB_CTRL = bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN; 
@@ -663,6 +682,6 @@ void USB_init() {
     UEP2_3_MOD = bUEP3_TX_EN;
 #endif
 
-    USB_INT_EN = bUIE_TRANSFER;
+    USB_INT_EN = bUIE_TRANSFER | bUIE_SUSPEND | bUIE_BUS_RST;
     IE_USB = 1;
 }
