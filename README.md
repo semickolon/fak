@@ -367,14 +367,18 @@ let word_select = macro.make [
 ] in
 ```
 
-Here are the following possible steps or instructions that can go into `macro.make [...]`. The `tap` does a `press` then a `release` in just one step.
+Here are the following possible steps or instructions that can go into `macro.make [...]`.
 
 ```
 macro.press [keycode]
 macro.release [keycode]
 macro.tap [keycode]
 macro.wait [duration in ms, up to 65535]
+macro.pause_for_release
 ```
+
+- `tap` does a `press` then a `release` condensed into one step.
+- `pause_for_release` waits for the macro key to be released then runs the steps after it. There can be at most one of this in a macro. Two or more will lead to heat death of the universe.
 
 Parameterizing macros is immediately possible thanks to Nickel, so there is no need to learn any other constructs. The following is an example that emulates[^3] `SEND_STRING` from QMK. Unlike QMK, this is not a C macro. It's simply a Nickel function that takes in a string and returns a macro.
 
@@ -389,7 +393,7 @@ let macro_send_string = fun str =>
 in
 
 let my_macro_1 = macro_send_string "fak yeah" in
-let my_macro_2 = macro_send_string "memories...do not open" in
+let my_macro_2 = macro_send_string "@gmail.com" in
 ```
 
 As of writing, there are no checks enforced in Nickel to check if all your `press`es are eventually `release`d. That is, it's possible to leave your `press`es pressed even after the macro is fully done. Take note of this, especially if you have weird behavior after activating a macro. This is all because I honestly don't know if checks should even be enforced or if there are actual use cases for leaving keys pressed after a macro.

@@ -82,6 +82,26 @@ let rec Keycode =
     }) type
   } in
 
+  let MacroSteps = 
+    let MacroStep = {
+      inst | [| 'press, 'release, 'tap, 'wait, 'pause_for_release |],
+      arg | (match {
+        'pause_for_release => { none | Uint 0 | default = 0 },
+        'wait => { duration_ms | Uint16 },
+        _ => { keycode | Keycode },
+      }) inst
+    } in
+
+    let HasAtMostOnePauseForRelease = std.contract.from_predicate (fun value =>
+      (value
+        |> std.array.filter (fun step => step.inst == 'pause_for_release)
+        |> std.array.length
+      ) <= 1)
+    in
+    
+    std.contract.Sequence [ Array MacroStep, HasAtMostOnePauseForRelease ]
+  in
+
   let Tappable = {
     type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent |],
     data | (match {
@@ -100,15 +120,7 @@ let rec Keycode =
       'custom => {
         type | [| 'fak, 'consumer, 'user, 'mouse, 'macro |],
         data | (match {
-          'macro => 
-            let MacroStep = {
-              inst | [| 'press, 'release, 'tap, 'wait |],
-              arg | (match {
-                'wait => { duration_ms | Uint16 },
-                _ => { keycode | Keycode },
-              }) inst
-            } in
-            { steps | Array MacroStep },
+          'macro => { steps | MacroSteps },
           _ => { code | Uint 10 },
         }) type
       },

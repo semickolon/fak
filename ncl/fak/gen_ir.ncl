@@ -188,6 +188,7 @@ in
 let encode_macro_step_arg = fun step =>
   match {
     'wait => step.arg.duration_ms,
+    'pause_for_release => 0,
     _ => encode_kc step.arg.keycode,
   } step.inst in
 
@@ -204,7 +205,8 @@ let _macro_steps =
       'press => 1,
       'release => 2,
       'tap => 3,
-      'wait => 4
+      'wait => 4,
+      'pause_for_release => 5,
     } step.inst,
     arg_idx | Uint16 = util.array.index_of (encode_macro_step_arg step) _macro_step_args,
   } in

@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 
-#define MACRO_INST_HALT      0
-#define MACRO_INST_PRESS     1
-#define MACRO_INST_RELEASE   2
-#define MACRO_INST_TAP       3
-#define MACRO_INST_WAIT      4
+#define MACRO_INST_HALT               0
+#define MACRO_INST_PRESS              1
+#define MACRO_INST_RELEASE            2
+#define MACRO_INST_TAP                3
+#define MACRO_INST_WAIT               4
+#define MACRO_INST_PAUSE_FOR_RELEASE  5
 
 typedef struct {
     uint8_t inst;

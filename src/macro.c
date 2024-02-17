@@ -6,14 +6,24 @@
 // TODO: Macro processing should be non-blocking
 
 void macro_handle_key(uint16_t step_idx, uint8_t down) {
-    if (!down) return;
-
     fak_macro_step_t step;
     uint32_t arg;
 
     while (1) {
         step = macro_steps[step_idx++];
+
         if (step.inst == MACRO_INST_HALT) return;
+
+        if (step.inst == MACRO_INST_PAUSE_FOR_RELEASE) {
+            if (down) {
+                return;
+            } else {
+                down = 1;
+                continue;
+            }
+        }
+
+        if (!down) continue;
 
         arg = macro_step_args[step.arg_idx];
 
