@@ -67,6 +67,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         CWON  = K 2,
         CWOFF = K 3,
         CWTG  = K 4,
+        REP   = K 5,
       },
       media = let K = fun code => K 'consumer code in {
         PLAY = K 205,
@@ -146,6 +147,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
     release = fun kc => { inst = 'release, arg.keycode = kc },
     tap = fun kc => { inst = 'tap, arg.keycode = kc },
     wait = fun ms => { inst = 'wait, arg.duration_ms = ms },
+    pause_for_release = { inst = 'pause_for_release, arg = {} },
   },
   
   MO = fun i => hold.reg.layer i,

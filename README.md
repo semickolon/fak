@@ -4,6 +4,8 @@ A keyboard firmware for the CH55x series.
 
 🥳 **Come join our [Discord server](https://discord.gg/4Ev8GFZNR2)!**
 
+<a href="https://www.buymeacoffee.com/semickolon"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=semickolon&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff" /></a>
+
 ## What the FAK?
 
 FAK stands for F.A. Keyboard. F.A. are the initials of a person who silently crashed into my party and did not even make their presence known to me or my family. **You know who you are.**
@@ -19,8 +21,6 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 ## Compatible hardware
 
 Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E but it should work. CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
-
-:eyes: **CH58x (BLE)** implementation written in Zig is a work-in-progress here: https://github.com/semickolon/fak-kiwi
 
 # Getting started
 
@@ -45,6 +45,21 @@ If you use Nix, you can simply use the provided flake.
 
 **TL;DR:** Don't use Meson directly. `fak.py` is your friend. Makes life easy.
 
+## Dev Container
+
+For easier setup, you can also use the provided Dev Container.
+
+1. Clone this repo
+1. Create a new codespace
+1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands
+
+The only thing that won't work from a remote setup is, of course, flashing. You'll have to do that locally with `wchisp`. Thankfully, `wchisp` provides prebuilt binaries so getting that set up is very easy.
+
+1. In your codespace, `python fak.py compile`
+1. Download the `.ihx` file(s) in `build/` to your local machine
+1. In your local machine, `wchisp flash central.ihx`
+1. And then if you have a split, `wchisp flash peripheral.ihx`
+
 ## Examples
 
 Check out the examples and see how keyboards and keymaps are defined in FAK, and how powerful and crazy it can get.
@@ -58,8 +73,9 @@ Check out the examples and see how keyboards and keymaps are defined in FAK, and
 Let me know if you're using FAK on a project and I'd be happy to add it here!
 
 - [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
-- [CH552-44, CH552-48 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
+- [CH552-44, CH552-48, CH552-48-LPR by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
 - [CH552-36 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-36-low-budget-36-key-split-keyboard-with-smt-components). Split keyboard built on a sub-100x100 mm2 PCB with SMT components.
+- [Ch55p34 by doesntfazer](https://github.com/doesntfazer/Ch55p34-keyboard). 34-key column-staggered unibody keyboard with standalone CH552T.
 
 # Features
 
@@ -202,9 +218,8 @@ let side_periph = {
 }
 ```
 
-Current limitations:
+Limitations:
 - Only UART0 is supported. UART1 is not yet supported.
-- No bitbang implementation yet, which would allow for half-duplex single-wire comms on any[^2] pin at the cost of firmware size. Hardware UART is full-duplex two-wire and only available on certain pins.
 - Central and peripheral sides are fixed. That is, you can't plug it in on the peripheral side. Well, you can, but of course it won't work as a USB keyboard.
 
 [^2]: Almost any pin. USB data pins obviously won't work here.
@@ -256,7 +271,7 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 }
 ```
 
-Current limitations:
+Limitations:
 - Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos (e.g., `[2, 3]` and `[3, 4, 5]`) are supported though, as shown in the example above.
 
 ## Sticky mods
@@ -285,7 +300,7 @@ let best_shift_ever =
 
 ## Mouse keys
 
-Yep. Mouse keys. Only constant speed is implemented so far. No acceleration or other modes yet.
+Yep. Mouse keys. Constant speed.
 
 ```
 # Mouse buttons
@@ -352,14 +367,18 @@ let word_select = macro.make [
 ] in
 ```
 
-Here are the following possible steps or instructions that can go into `macro.make [...]`. The `tap` does a `press` then a `release` in just one step.
+Here are the following possible steps or instructions that can go into `macro.make [...]`.
 
 ```
 macro.press [keycode]
 macro.release [keycode]
 macro.tap [keycode]
 macro.wait [duration in ms, up to 65535]
+macro.pause_for_release
 ```
+
+- `tap` does a `press` then a `release` condensed into one step.
+- `pause_for_release` waits for the macro key to be released then runs the steps after it. There can be at most one of this in a macro. Two or more will lead to heat death of the universe.
 
 Parameterizing macros is immediately possible thanks to Nickel, so there is no need to learn any other constructs. The following is an example that emulates[^3] `SEND_STRING` from QMK. Unlike QMK, this is not a C macro. It's simply a Nickel function that takes in a string and returns a macro.
 
@@ -374,7 +393,7 @@ let macro_send_string = fun str =>
 in
 
 let my_macro_1 = macro_send_string "fak yeah" in
-let my_macro_2 = macro_send_string "memories...do not open" in
+let my_macro_2 = macro_send_string "@gmail.com" in
 ```
 
 As of writing, there are no checks enforced in Nickel to check if all your `press`es are eventually `release`d. That is, it's possible to leave your `press`es pressed even after the macro is fully done. Take note of this, especially if you have weird behavior after activating a macro. This is all because I honestly don't know if checks should even be enforced or if there are actual use cases for leaving keys pressed after a macro.
@@ -404,8 +423,10 @@ Inspired by ZMK, this is a generalization of what's usually known as "tri-layers
 
 Now, conditional layers (such as 3 and 9 in the example above) are fully controlled by the firmware and FAK doesn't want your grubby little fingers on them. Checks are enforced in Nickel, so you cannot activate conditional layers yourself any other way, like `hold.reg.layer X` where X is a conditional layer.
 
+## Repeat key
+
+`tap.custom.fak.REP` repeats the last reported non-modifier keycode including modifiers when it was pressed. Basically, tapping a modifier like Ctrl alone will not be repeated by the repeat key, but Ctrl-A will be, since it has a non-modifier keycode (A).
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).
-
-This project is still at its very early stages though, so some error cases won't be caught yet. Not yet 100% foolproof. Also, the error messages don't look very helpful in the meantime.

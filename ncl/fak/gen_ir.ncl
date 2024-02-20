@@ -188,6 +188,7 @@ in
 let encode_macro_step_arg = fun step =>
   match {
     'wait => step.arg.duration_ms,
+    'pause_for_release => 0,
     _ => encode_kc step.arg.keycode,
   } step.inst in
 
@@ -204,7 +205,8 @@ let _macro_steps =
       'press => 1,
       'release => 2,
       'tap => 3,
-      'wait => 4
+      'wait => 4,
+      'pause_for_release => 5,
     } step.inst,
     arg_idx | Uint16 = util.array.index_of (encode_macro_step_arg step) _macro_step_args,
   } in
@@ -251,6 +253,7 @@ let _central_defines = {
   CONDITIONAL_LAYER_COUNT = std.record.length km.conditional_layers,
 
   CAPS_WORD_ENABLE = is_custom_keys_of_type_of_keycodes_used 'fak [2, 3, 4],
+  REPEAT_KEY_ENABLE = is_custom_keys_of_type_of_keycodes_used 'fak [5],
 
   COMBO_COUNT = combo_count,
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
@@ -344,6 +347,9 @@ in {
 & util.record.only_if _central_defines.STICKY_MODS_ENABLE {
   PENDING_STICKY_MODS = sizeof.uint8_t,
   APPLIED_STICKY_MODS = sizeof.uint8_t,
+}
+& util.record.only_if _central_defines.REPEAT_KEY_ENABLE {
+  REPEAT_KEY = sizeof.uint8_t * 4,
 } in
 
 let _xaddr_defines =
