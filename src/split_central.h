@@ -2,7 +2,7 @@
 #define __SPLIT_CENTRAL_H__
 
 #include "key_event_queue.h"
-#include "ch552.h"
+#include "ch55x.h"
 
 #include <stdint.h>
 

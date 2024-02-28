@@ -1,6 +1,6 @@
 #include "caps_word.h"
 
-#include "ch552.h"
+#include "ch55x.h"
 
 #include "time.h"
 #include "split_central.h"

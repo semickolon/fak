@@ -1,5 +1,5 @@
 #include "bootloader.h"
-#include "ch552.h"
+#include "ch55x.h"
 #include "time.h"
 
 inline void bootloader() {

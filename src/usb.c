@@ -1,5 +1,5 @@
 #include "usb.h"
-#include "ch552.h"
+#include "ch55x.h"
 #include "math.h"
 
 #include <string.h>
@@ -652,25 +652,38 @@ void USB_init() {
 
     // Main init
     USB_CTRL = bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN; 
+#if CH55X == 2
     UDEV_CTRL = bUD_PD_DIS | bUD_PORT_EN;
+#elif CH55X == 9
+    UDEV_CTRL = bUD_DP_PD_DIS | bUD_DM_PD_DIS | bUD_PORT_EN;
+#endif
+
+#if CH55X == 2
+#define UEP_DMA(n) UEP##n##_DMA = XADDR_USB_EP##n;
+#elif CH55X == 9
+#define UEP_DMA(n) {\
+    UEP##n##_DMA_H = MSB(XADDR_USB_EP##n);\
+    UEP##n##_DMA_L = LSB(XADDR_USB_EP##n);\
+}
+#endif
 
     UEP0_T_LEN = 0;
-    UEP0_DMA = XADDR_USB_EP0;
+    UEP_DMA(0)
 
     UEP1_T_LEN = USB_EP1_SIZE;
-    UEP1_DMA = XADDR_USB_EP1;
+    UEP_DMA(1)
     UEP1_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_ACK;
     UEP4_1_MOD = bUEP1_TX_EN;
 
 #ifdef CONSUMER_KEYS_ENABLE
     UEP2_T_LEN = USB_EP2_SIZE;
-    UEP2_DMA = XADDR_USB_EP2;
+    UEP_DMA(2)
     UEP2_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
 #endif
 
 #ifdef MOUSE_KEYS_ENABLE
     UEP3_T_LEN = USB_EP3_SIZE;
-    UEP3_DMA = XADDR_USB_EP3;
+    UEP_DMA(3)
     UEP3_CTRL = bUEP_AUTO_TOG | UEP_T_RES_NAK | UEP_R_RES_NAK;
 #endif
 

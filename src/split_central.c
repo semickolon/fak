@@ -1,5 +1,5 @@
 #include "split_central.h"
-#include "ch552.h"
+#include "ch55x.h"
 #include "usb.h"
 #include "time.h"
 #include "keymap.h"
@@ -195,7 +195,7 @@ static void subhandle(uint8_t handle_event) {
         }
     }
 
-    USB_EP1I_send_now(); // TODO: This shouldn't be necessary
+    USB_EP1I_send_now();
 
     if (handle_event == HANDLE_EVENT_INCOMING_EVENT) {
         if (handle_result & HANDLE_RESULT_CONSUMED_EVENT) {

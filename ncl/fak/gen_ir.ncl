@@ -365,6 +365,11 @@ let _xaddr_defines =
 in
 
 let _defines = {
+  CH55X = match {
+    'CH552 => 2,
+    'CH559 => 9,
+  } kb.mcu.family,
+
   SPLIT_ENABLE = side != 'self,
   SPLIT_SIDE_CENTRAL = side != 'peripheral,
   SPLIT_SIDE_PERIPHERAL = side == 'peripheral,

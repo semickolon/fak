@@ -124,7 +124,7 @@ let c_file =
   let set_out_pin = fun high out_pin_idx =>
     "OUT%{std.to_string out_pin_idx} = %{if high then "1" else "0"};" in
 m%"
-  #include "ch552.h"
+  #include "ch55x.h"
 
   %{side_central_defs}
 

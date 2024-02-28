@@ -4,7 +4,7 @@ let { Uint8, Uint16, BoundedInt, Set, ElementOf, .. } = import "util_types.ncl" 
 let GpioPin = std.contract.from_predicate (fun value =>
   std.is_number value
   && std.number.is_integer value
-  && value >= 10
+  && value >= 00
   && value <= 47
   && value % 10 < 8) in
 
@@ -20,6 +20,7 @@ let McuFeature = fun gpios => {
 } in
 
 let Mcu = {
+  family | [| 'CH552, 'CH559 |],
   gpios | Set GpioPin,
   features | { _ : McuFeature gpios } | default = {},
 } in

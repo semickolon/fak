@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "ch552.h"
+#include "ch55x.h"
 
 void caps_word_on();
 void caps_word_off();

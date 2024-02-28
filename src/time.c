@@ -1,12 +1,22 @@
-#include "ch552.h"
+#include "ch55x.h"
 #include "time.h"
 
 __idata volatile uint16_t timer_1ms;
 
 void delay(uint16_t ms) {
     while (ms) {
+#if CH55X == 2
         while ((TKEY_CTRL & bTKC_IF) == 0);
         while (TKEY_CTRL & bTKC_IF);
+#elif CH55X == 9
+        uint16_t i = 1000;
+
+        while (i) {
+            ++SAFE_MOD;
+            i--;
+        }
+        // TODO: [CH559] Is this correct?
+#endif
         ms--;
     }
 }
@@ -29,10 +39,15 @@ static inline void exit_safe_mode() {
 }
 
 void CLK_init() {
+#if CH55X == 2
     // Internal clock @ 24MHz
     enter_safe_mode();
     CLOCK_CFG = (CLOCK_CFG & ~MASK_SYS_CK_SEL) | 0b110;
     exit_safe_mode();
+#elif CH55X == 9
+    // Internal clock @ 12MHz
+    // TODO: [CH559] Do we need to do anything here?
+#endif
 }
 
 #pragma save

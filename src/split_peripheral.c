@@ -1,5 +1,5 @@
 #include "split_peripheral.h"
-#include "ch552.h"
+#include "ch55x.h"
 #include "time.h"
 
 uint8_t key_bits[SPLIT_KEY_COUNT_BYTES];
