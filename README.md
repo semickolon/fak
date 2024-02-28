@@ -78,10 +78,19 @@ Check out the examples and see how keyboards and keymaps are defined in FAK, and
 
 Let me know if you're using FAK on a project and I'd be happy to add it here!
 
+## Dev boards
+
 - [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
-- [CH552-44, CH552-48, CH552-48-LPR by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinear keebs built on WeAct board and PCBA'd standalone CH552T.
-- [CH552-36 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-36-low-budget-36-key-split-keyboard-with-smt-components). Split keyboard built on a sub-100x100 mm2 PCB with SMT components.
-- [Ch55p34 by doesntfazer](https://github.com/doesntfazer/Ch55p34-keyboard). 34-key column-staggered unibody keyboard with standalone CH552T.
+- [Partycrasher Micro by semickolon](https://oshwlab.com/kkpjfobj/partycrasher-micro). Drop-in replacement CH558L/CH559L MCU for the Pro Micro.
+
+## Keyboards
+
+- [CH552-44, CH552-48, CH552-48-LPR by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-44-low-budget-hand-solderable-pcb-in-bm40jj40-form-factor). Ortholinears built on WeAct board and PCBA'd onboard CH552T.
+- [CH552-36 by rgoulter](https://github.com/rgoulter/keyboard-labs#ch552-36-low-budget-36-key-split-keyboard-with-smt-components). 36-key split built on a sub-100mm PCB. Onboard CH552T.
+- [Ch55p34 by doesntfazer](https://github.com/doesntfazer/Ch55p34-keyboard). 34-key column-staggered unibody. Onboard CH552T.
+- [idawgz32 by ChrisChrisLo](https://github.com/ChrisChrisLoLo/idawgz32). 32-key ultra-portable and ultra-affordable pocket keyboard. Onboard CH552T.
+- [Hexatana by Purox](https://git.imaginaerraum.de/Purox/hexatana). 36-key Katana-inspired keyboard designed around hexagonal keycaps. Onboard CH552T.
+- [0xPM by llmerlos](https://git.imaginaerraum.de/Purox/hexatana). 3x6+4 split ortholinear with USB-C interconnect. Onboard CH552T.
 
 # Features
 
