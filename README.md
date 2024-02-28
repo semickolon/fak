@@ -20,7 +20,13 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 ## Compatible hardware
 
-Currently, it has been tested on CH552T, CH552G. It hasn't been tested on CH552E but it should work. CH558 and CH559 will be supported soon to take advantage of their larger flash and memory.
+| Chip    | Status |
+|---------|--------|
+| CH552T  | ✅ Fully supported and tested |
+| CH552G  | ✅ Fully supported and tested |
+| CH552E  | 🟡 Not tested but likely functional |
+| CH559L  | 🚧 Partially working, WIP |
+| CH558L  | ❓ Not tested but should be the same as CH559L |
 
 # Getting started
 
