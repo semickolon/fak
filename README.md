@@ -90,7 +90,7 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 - [Ch55p34 by doesntfazer](https://github.com/doesntfazer/Ch55p34-keyboard). 34-key column-staggered unibody. Onboard CH552T.
 - [idawgz32 by ChrisChrisLo](https://github.com/ChrisChrisLoLo/idawgz32). 32-key ultra-portable and ultra-affordable pocket keyboard. Onboard CH552T.
 - [Hexatana by Purox](https://git.imaginaerraum.de/Purox/hexatana). 36-key Katana-inspired keyboard designed around hexagonal keycaps. Onboard CH552T.
-- [0xPM by llmerlos](https://git.imaginaerraum.de/Purox/hexatana). 3x6+4 split ortholinear with USB-C interconnect. Onboard CH552T.
+- [0xPM by llmerlos](https://github.com/llmerlos/0xPM). 3x6+4 split ortholinear with USB-C interconnect. Onboard CH552T.
 
 # Features
 
@@ -469,13 +469,14 @@ let XXXX = tap.none & hold.none in
 let kc = tap.reg.kc in
 let htb = { timeout_ms = 200 } in
 
-let layers =
+let layers = [
   [ # Layer 0
     kc.A, kc.B, kc.C, kc.D, hold.reg.mod.lsft & tap.layer.TG 1 & hold.reg.behavior htb
   ],
   [ # Layer 1
     tap.tlex, kc.N1, kc.N2, hold.tlex htb & kc.Z
   ]
+] in
 ```
 
 In the example above, we start with layer 0. We toggle layer 1 by tapping the last key. Pressing the first key invokes `tap.tlex` which results to the typing of "a". Pressing second and third keys after that will type "bc", not "12" which is what would happen if you used `tap.trans` instead that doesn't deactivate the layer it's in.
