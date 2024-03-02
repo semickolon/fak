@@ -80,7 +80,7 @@ let encode_modifiers = fun mods => std.array.reduce_left (+) (std.array.map (fun
 let encode_tappable = fun { type, data } => match {
   'none => 0,
   'regular => data.hid_code + util.bit.shift (encode_modifiers data.mods) 8,
-  'sticky => 160 + util.bit.shift (encode_modifiers data.mods) 8,
+  'sticky => 160 + (util.bit.shift (encode_modifiers data.mods) 8) + data.layer,
   'layer => 
     let op = match { 'df => 0, 'tog => 1, 'to => 2 } data.operation in
     192 + data.layer + util.bit.shift op 8,
@@ -236,7 +236,7 @@ let _central_defines = {
 
   TAP_DANCE_ENABLE = std.array.any (fun kc => kc.type == 'tap_dance) keycodes,
 
-  STICKY_MODS_ENABLE = std.array.any (fun kc => kc.type == 'hold_tap && kc.data.tap.type == 'sticky) deep_keycodes,
+  STICKY_ENABLE = std.array.any (fun kc => kc.type == 'hold_tap && kc.data.tap.type == 'sticky) deep_keycodes,
 
   CUSTOM_KEYS_ENABLE = is_custom_keys_used,
   FAK_KEYS_ENABLE = is_custom_keys_of_type_used 'fak,
@@ -344,9 +344,10 @@ in {
     COMBO_KEY_QUEUE = sizeof.uint8_t + (sizeof.fak_combo_key_queue_entry_t * _central_defines.COMBO_KEY_QUEUE_LEN),
   }
 )
-& util.record.only_if _central_defines.STICKY_MODS_ENABLE {
+& util.record.only_if _central_defines.STICKY_ENABLE {
   PENDING_STICKY_MODS = sizeof.uint8_t,
   APPLIED_STICKY_MODS = sizeof.uint8_t,
+  APPLIED_STICKY_LAYER = sizeof.uint8_t,
 }
 & util.record.only_if _central_defines.REPEAT_KEY_ENABLE {
   REPEAT_KEY = sizeof.uint8_t * 4,

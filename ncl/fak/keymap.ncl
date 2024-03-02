@@ -112,6 +112,7 @@ let rec Keycode =
       },
       'sticky => {
         mods | Modifiers | default = {},
+        layer | Uint 5 | default = 0,
       },
       'layer => {
         operation | [| 'df, 'tog, 'to |],

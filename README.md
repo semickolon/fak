@@ -296,7 +296,7 @@ Tired of holding shift for just one key? What about tapping shift then *only* th
 ```
 let sticky_shift = tap.sticky.mod.lsft in
 
-# It doesn't have to be just shift. You can mix and match mods as shown below.
+# It doesn't have to be just shift. You can combine mods as shown below.
 # When you press two sticky mods in a row, they get stacked or combined, waiting for the next key press.
 
 let sticky_gui_alt = tap.sticky.mod.lgui & tap.sticky.mod.lalt in
@@ -312,6 +312,24 @@ let best_shift_ever =
   & hold.reg.mod.lsft
   & hold.reg.behavior { ... }
 ```
+
+## Sticky layers
+
+Temporarily activates a layer until the next key press. Unlike sticky mods, sticky layers cannot be combined. That means you cannot press two sticky layers in a row and have both layers activate. Only the last pressed sticky layer takes effect. However, you can combine sticky mods and layer into one key.
+
+```
+# Activates layer 2 until next key press
+tap.sticky.layer 2
+
+# Activates layer 3 with Ctrl-Alt until next key press
+tap.sticky.layer 3 & tap.sticky.mod.lsft & tap.sticky.mod.lalt
+
+# Layer 4 on hold; Sticky layer 5 on tap
+hold.reg.layer 4 & tap.sticky.layer 5 & hold.reg.behavior { ... }
+```
+
+Limitations:
+- You cannot use layer 0 as sticky. Nickel won't stop you, but it won't work during operation. This shouldn't be a dealbreaker though. We normally use sticky layers whose layer index is higher than that of the default/base layer.
 
 ## Mouse keys
 

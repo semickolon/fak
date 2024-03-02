@@ -29,9 +29,10 @@ __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
 
 __xdata __at(XADDR_STRONG_MODS_REF_COUNT) uint8_t strong_mods_ref_count[8];
 
-#ifdef STICKY_MODS_ENABLE
+#ifdef STICKY_ENABLE
 __xdata __at(XADDR_PENDING_STICKY_MODS) uint8_t pending_sticky_mods = 0;
 __xdata __at(XADDR_APPLIED_STICKY_MODS) uint8_t applied_sticky_mods = 0;
+__xdata __at(XADDR_APPLIED_STICKY_LAYER) uint8_t applied_sticky_layer = 0;
 #endif
 
 #ifdef REPEAT_KEY_ENABLE
@@ -131,7 +132,7 @@ static void register_code(uint8_t key_code, uint8_t down) {
         return;
     }
 
-#ifdef STICKY_MODS_ENABLE
+#ifdef STICKY_ENABLE
     if (!applied_sticky_mods && pending_sticky_mods && down) {
         applied_sticky_mods = pending_sticky_mods;
         pending_sticky_mods = 0;
@@ -164,6 +165,12 @@ static void subhandle(uint8_t handle_event) {
 
     if (!ev_front->mapped && handle_event == HANDLE_EVENT_QUEUED && ev_front->pressed) {
         ks->key_code = get_real_key_code(ev_front->key_idx);
+#ifdef STICKY_ENABLE
+        if (applied_sticky_layer > 0) {
+            layer_state_off(applied_sticky_layer);
+            applied_sticky_layer = 0;
+        }
+#endif
     }
 
     uint8_t future_type = get_future_type(ks->key_code);
@@ -285,20 +292,25 @@ void handle_non_future(uint32_t key_code, uint8_t down) {
 
     uint8_t tap_mods = (key_code & KEY_CODE_TAP_MODS_MASK) >> 8;
     uint8_t tap_code = (key_code & KEY_CODE_TAP_CODE_MASK);
+    uint8_t layer_idx = tap_code & 0x1F;
     uint8_t weak_mods = 0;
 
     switch (tap_code & 0xE0) {
-#ifdef STICKY_MODS_ENABLE
+#ifdef STICKY_ENABLE
     case 0xA0: // Sticky layer/mods
         if (!down) break;
         pending_sticky_mods |= tap_mods;
+
+        if (layer_idx > 0 && is_layer_off(layer_idx)) {
+            applied_sticky_layer = layer_idx;
+            layer_state_on(applied_sticky_layer);
+        }
         break;
 #endif
 
 #if LAYER_COUNT > 1
     case 0xC0: // Layer-tap action
         if (!down) break;
-        uint8_t layer_idx = tap_code & 0x1F;
 
         switch (tap_mods) {
         case 0: // DF

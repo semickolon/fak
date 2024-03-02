@@ -54,6 +54,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
     },
     sticky = {
       mod = mod_ (K 'sticky),
+      layer = fun i => K 'sticky { layer = i },
     },
     layer = let K = fun i op => K 'layer { layer = i, operation = op } in {
       DF = fun i => K i 'df,
