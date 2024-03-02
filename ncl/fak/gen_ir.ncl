@@ -301,6 +301,7 @@ let _xaddr_sizes = let
       let name = "USB_EP%{std.to_string i}_SIZE" in
       let padding = 2 in
       _central_defines."%{name}" + padding,
+    int8_t = 1,
     uint8_t = 1,
     uint16_t = 2,
     uint32_t = 4,
@@ -321,6 +322,8 @@ in {
 }
 & util.record.only_if _central_defines.MOUSE_KEYS_ENABLE {
   USB_EP3 = sizeof.usb_ep 3,
+  MOUSE_SCROLL_DIRECTION = sizeof.int8_t,
+  MOUSE_SCROLL_AT_TIME = sizeof.uint16_t,
 }
 & util.record.only_if (layer_count > 1) (
   let sizeof = sizeof & {

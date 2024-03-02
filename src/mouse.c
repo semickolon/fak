@@ -2,9 +2,8 @@
 #include "usb.h"
 #include "time.h"
 
-// TODO: Convert to __xdata
-int8_t scroll_direction = 0;
-uint16_t scroll_at_time = 0;
+__xdata __at(XADDR_MOUSE_SCROLL_DIRECTION) int8_t scroll_direction = 0;
+__xdata __at(XADDR_MOUSE_SCROLL_AT_TIME) uint16_t scroll_at_time = 0;
 
 void mouse_handle_key(uint16_t custom_code, uint8_t down) {
     if (custom_code < 8) {
