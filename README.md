@@ -94,10 +94,6 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 
 # Features
 
-## Layers
-
-Yep. Layers. Up to 32.
-
 ## Composable keycodes
 
 Keycodes are in 32 bits. 16 for the hold portion. 16 for the tap portion. If both portions exist, you get a hold-tap.
@@ -109,12 +105,12 @@ tap.reg.kc.A
 # Ctrl-A
 tap.reg.kc.A & tap.reg.mod.lctl
 
-# Ctrl-A when tapped, Layer 1 (MO(1) in QMK) when held
+# Ctrl-A when tapped, Layer 1 (like MO(1) in QMK) when held
 # Both portions exist. This is a hold-tap.
-tap.reg.kc.A & tap.reg.mod.lctl & hold.reg.layer 1
+tap.reg.kc.A & tap.reg.mod.lctl & hold.reg.layer 1 & hold.reg.behavior {}
 
 # Ctrl-Shift-A when tapped, Layer 1 with Alt and Shift when held
-tap.reg.kc.A & tap.reg.mod.lctl & tap.reg.mod.lsft & hold.reg.layer 1 & hold.reg.mod.lalt & hold.reg.mod.lsft
+tap.reg.kc.A & tap.reg.mod.lctl & tap.reg.mod.lsft & hold.reg.layer 1 & hold.reg.mod.lalt & hold.reg.mod.lsft & hold.reg.behavior {}
 
 # Layer 1 when pressed/held
 # Only hold portion exists. This is not a hold-tap.
@@ -138,6 +134,24 @@ let mod = hold.reg.mod in
     ]
   ]
 }
+```
+
+## Layers
+
+Yep. Layers. Up to 32.
+
+```
+# Momentary layer (like MO in QMK)
+hold.reg.layer [0-31]
+
+# TG, like in QMK, toggles the layer on or off
+tap.layer.TG [0-31]
+
+# DF, roughly like in QMK, clears all layers except for the new specified default layer
+tap.layer.DF [0-31]
+
+# TO, like in QMK, turns the specified layer on, and clears all others except for the default layer
+tap.layer.TO [0-31]
 ```
 
 ## Complex hold-tap behaviors
@@ -426,7 +440,7 @@ let macro_send_string = fun str =>
 in
 
 let my_macro_1 = macro_send_string "fak yeah" in
-let my_macro_2 = macro_send_string "@gmail.com" in
+let my_macro_2 = macro_send_string "gmail.com" in
 ```
 
 As of writing, there are no checks enforced in Nickel to check if all your `press`es are eventually `release`d. That is, it's possible to leave your `press`es pressed even after the macro is fully done. Take note of this, especially if you have weird behavior after activating a macro. This is all because I honestly don't know if checks should even be enforced or if there are actual use cases for leaving keys pressed after a macro.
@@ -471,7 +485,7 @@ let htb = { timeout_ms = 200 } in
 
 let layers = [
   [ # Layer 0
-    kc.A, kc.B, kc.C, kc.D, hold.reg.mod.lsft & tap.layer.TG 1 & hold.reg.behavior htb
+    kc.A, kc.B, kc.C, hold.reg.mod.lsft & tap.layer.TG 1 & hold.reg.behavior htb
   ],
   [ # Layer 1
     tap.tlex, kc.N1, kc.N2, hold.tlex htb & kc.Z
