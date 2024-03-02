@@ -67,7 +67,7 @@ in {
 
 let rec Keycode = 
   let Holdable = {
-    type | [| 'none, 'regular, 'nop, 'transparent |],
+    type | [| 'none, 'regular, 'nop, 'transparent_layer_exit, 'transparent |],
     data | (match {
       'none => {},
       'regular => {
@@ -76,6 +76,9 @@ let rec Keycode =
         mods | Modifiers | default = {}
       },
       'nop => {
+        behavior | HoldTapBehavior,
+      },
+      'transparent_layer_exit => {
         behavior | HoldTapBehavior,
       },
       'transparent => {}
@@ -103,7 +106,7 @@ let rec Keycode =
   in
 
   let Tappable = {
-    type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent |],
+    type | [| 'none, 'regular, 'sticky, 'layer, 'custom, 'transparent_layer_exit, 'transparent |],
     data | (match {
       'none => {},
       'regular => {
@@ -125,6 +128,7 @@ let rec Keycode =
           _ => { code | Uint 10 },
         }) type
       },
+      'transparent_layer_exit => {},
       'transparent => {}
     }) type
   } in

@@ -97,22 +97,23 @@ let encode_tappable = fun { type, data } => match {
       'mouse => 3,
       'macro => 4,
     } data.type,
+  'transparent_layer_exit => 65534,
   'transparent => 65535
 } type in
 
-let encode_holdable = fun { type, data } is_hold_tap => match {
-  'none => 0,
-  'regular =>
-    (
-      if is_hold_tap then
-        util.bit.shift (util.array.index_of data.behavior _hold_tap_behaviors) 13
-      else 0
-    )
-    + util.bit.shift data.layer 8
-    + encode_modifiers data.mods,
-  'nop => 8191 + util.bit.shift (util.array.index_of data.behavior _hold_tap_behaviors) 13,
-  'transparent => 65535
-} type in
+let encode_holdable = fun { type, data } is_hold_tap =>
+  let behavior = fun data => util.bit.shift (util.array.index_of data.behavior _hold_tap_behaviors) 13 in
+  match {
+    'none => 0,
+    'regular =>
+      (if is_hold_tap then (behavior data) else 0)
+      + util.bit.shift data.layer 8
+      + encode_modifiers data.mods,
+    'nop => 8191 + behavior data,
+    'transparent_layer_exit => 8190 + behavior data,
+    'transparent => 65535
+  } type
+in
 
 let encode_hold_tap = fun { tap, hold } is_hold_tap =>
   encode_tappable tap
@@ -222,10 +223,15 @@ let _central_defines = {
   LAYER_COUNT = layer_count,
   DEBOUNCE_MS = kb.debounce_ms,
 
-  LAYER_TRANSPARENCY_ENABLE = std.array.any (fun kc => 
+  LAYER_TRANSPARENCY_ENABLE = layer_count > 1 && (std.array.any (fun kc => 
     kc.type == 'hold_tap
     && (kc.data.tap.type == 'transparent || kc.data.hold.type == 'transparent)
-  ) deep_keycodes,
+  ) deep_keycodes),
+
+  TRANS_LAYER_EXIT_ENABLE = layer_count > 1 && (std.array.any (fun kc => 
+    kc.type == 'hold_tap
+    && (kc.data.tap.type == 'transparent_layer_exit || kc.data.hold.type == 'transparent_layer_exit)
+  ) deep_keycodes),
 
   HOLD_TAP_ENABLE = std.array.length _hold_tap_behaviors > 0,
   HOLD_TAP_EAGER_ENABLE = std.array.any (fun b => b.eager_decision != 'none) _hold_tap_behaviors,

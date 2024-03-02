@@ -125,4 +125,21 @@ uint8_t is_layer_off(uint8_t layer_idx) {
     return ((layer_state | persistent_layer_state) & (1 << layer_idx)) == 0;
 }
 
+#ifdef TRANS_LAYER_EXIT_ENABLE
+uint8_t get_trans_layer_exit_source_idx(uint8_t key_idx, uint8_t hold) {
+    uint32_t mask = hold ? KEY_CODE_HOLD_LAYER_IDX_MODS_MASK : KEY_CODE_TAP_MASK;
+    uint32_t code = hold ? KEY_CODE_HOLD_TRANS_LAYER_EXIT : KEY_CODE_TAP_TRANS_LAYER_EXIT;
+    
+    uint8_t layer_idx = LAYER_COUNT;
+
+    while (layer_idx--) {
+        // Trans layer exit only works for non-persistent activated layers
+        if ((layer_state & (1 << layer_idx)) && (key_map[layer_idx][key_idx] & mask) == code)
+            return layer_idx;
+    }
+
+    return 255;
+}
+#endif
+
 #endif

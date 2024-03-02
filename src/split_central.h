@@ -21,6 +21,7 @@
 #define FUTURE_TYPE_NONE 0
 #define FUTURE_TYPE_HOLD_TAP 1
 #define FUTURE_TYPE_TAP_DANCE 2
+#define FUTURE_TYPE_TRANS_LAYER_EXIT 3
 
 typedef struct {
     uint8_t status;

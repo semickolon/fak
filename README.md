@@ -460,6 +460,28 @@ Now, conditional layers (such as 3 and 9 in the example above) are fully control
 
 `tap.custom.fak.REP` repeats the last reported non-modifier keycode including modifiers when it was pressed. Basically, tapping a modifier like Ctrl alone will not be repeated by the repeat key, but Ctrl-A will be, since it has a non-modifier keycode (A).
 
+## Transparent layer exit
+
+A version of the transparent key that (1) deactivates the layer it is in, then (2) registers the key press. This is an alternative implementation to what's usually known as smart layers. There exists a tap variant `tap.tlex` and also a hold variant `hold.tlex { ... }` that takes in a hold-tap behavior. `tap.tlex` is fine for simple use cases, but for more advanced use cases, `hold.tlex` allows you to only exit the layer when held and do something else when tapped.
+
+```
+let XXXX = tap.none & hold.none in
+let kc = tap.reg.kc in
+let htb = { timeout_ms = 200 } in
+
+let layers =
+  [ # Layer 0
+    kc.A, kc.B, kc.C, kc.D, hold.reg.mod.lsft & tap.layer.TG 1 & hold.reg.behavior htb
+  ],
+  [ # Layer 1
+    tap.tlex, kc.N1, kc.N2, hold.tlex htb & kc.Z
+  ]
+```
+
+In the example above, we start with layer 0. We toggle layer 1 by tapping the last key. Pressing the first key invokes `tap.tlex` which results to the typing of "a". Pressing second and third keys after that will type "bc", not "12" which is what would happen if you used `tap.trans` instead that doesn't deactivate the layer it's in.
+
+Let's start over. We start with layer 0. Tap last key to toggle layer 1. Tapping last key will type "z", but holding it for at least 200ms will invoke `hold.tlex` which deactivates layer 1 and registers the same hold, resulting to holding of shift. While still keeping the last key held, pressing other keys will type "ABC" since layer 1 was deactivated and shift became held at the same time.
+
 ## Foolproof config
 
 If you do something illegal like `hold.reg.layer 2` but you don't even have a layer 2, you'll get an error. It won't let you compile. Same thing if you try to mix incompatible building blocks like `tap.reg.kc.A & tap.trans & tap.custom.fak.BOOT`. Basically, assuming there's nothing wrong with your config's syntax, if you get an error from Nickel, then it's likely you did something that doesn't make sense or you've hit a hard limit (like defining layer 33).

@@ -57,6 +57,10 @@ uint8_t get_future_type(uint32_t key_code) {
 #ifdef HOLD_TAP_ENABLE
     if (is_future_type_hold_tap(key_code)) return FUTURE_TYPE_HOLD_TAP;
 #endif
+#ifdef TRANS_LAYER_EXIT_ENABLE
+    if (key_code == KEY_CODE_HOLD_TRANS_LAYER_EXIT || key_code == KEY_CODE_TAP_TRANS_LAYER_EXIT)
+        return FUTURE_TYPE_TRANS_LAYER_EXIT;
+#endif
     return FUTURE_TYPE_NONE;
 }
 
@@ -158,6 +162,21 @@ static void register_code(uint8_t key_code, uint8_t down) {
     last_tap_timestamp = get_timer();
 }
 
+static uint8_t trans_layer_exit_handle(fak_key_state_t *ks) {
+    uint8_t key_idx = key_event_queue_front()->key_idx;
+    uint8_t layer_idx = get_trans_layer_exit_source_idx(
+        key_idx,
+        ks->key_code == KEY_CODE_HOLD_TRANS_LAYER_EXIT
+    );
+
+    if (layer_idx >= LAYER_COUNT)
+        return HANDLE_RESULT_COMPLETED;
+
+    layer_state_off(layer_idx);
+    ks->key_code = get_real_key_code(key_idx);
+    return HANDLE_RESULT_MAPPED;
+}
+
 static void subhandle(uint8_t handle_event) {
     fak_key_event_t *ev_front = key_event_queue_front();
     fak_key_state_t *ks = &key_states[ev_front->key_idx];
@@ -173,7 +192,7 @@ static void subhandle(uint8_t handle_event) {
 #endif
     }
 
-    uint8_t future_type = get_future_type(ks->key_code);
+    uint8_t future_type = get_future_type(ks->key_code);    
 
     if (future_type == FUTURE_TYPE_NONE) {
         handle_non_future(ks->key_code, ev_front->pressed);
@@ -197,6 +216,11 @@ static void subhandle(uint8_t handle_event) {
 #ifdef HOLD_TAP_ENABLE
         case FUTURE_TYPE_HOLD_TAP:
             handle_result = hold_tap_handle_event(ks, handle_event, delta);
+            break;
+#endif
+#ifdef TRANS_LAYER_EXIT_ENABLE
+        case FUTURE_TYPE_TRANS_LAYER_EXIT:
+            handle_result = trans_layer_exit_handle(ks);
             break;
 #endif
         }

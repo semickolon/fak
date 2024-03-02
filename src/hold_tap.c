@@ -17,7 +17,7 @@
 #define EAGER_DECIDE_HOLD 3
 
 #define TEMP_TAP(ks, down) handle_non_future(ks->key_code & KEY_CODE_TAP_MASK, down);
-#define TEMP_HOLD(ks, down) handle_non_future(ks->key_code & KEY_CODE_HOLD_MASK, down);
+#define TEMP_HOLD(ks, down) handle_non_future(ks->key_code & KEY_CODE_HOLD_LAYER_IDX_MODS_MASK, down);
 
 uint8_t is_future_type_hold_tap(uint32_t key_code) {
     return (key_code & KEY_CODE_HOLD_MASK) && (key_code & KEY_CODE_TAP_MASK);
@@ -64,7 +64,7 @@ static uint8_t resolve_eager(uint8_t decide_hold, fak_key_state_t *ks, uint8_t b
 
     if (decide_hold) {
         eager_correct = process_eager(ks, behavior_flags, EAGER_DECIDE_HOLD);
-        ks->key_code &= KEY_CODE_HOLD_MASK;
+        ks->key_code &= KEY_CODE_HOLD_LAYER_IDX_MODS_MASK;
     } else {
         eager_correct = process_eager(ks, behavior_flags, EAGER_DECIDE_TAP);
         ks->key_code &= KEY_CODE_TAP_MASK;
@@ -80,7 +80,7 @@ static uint8_t resolve_eager(uint8_t decide_hold, fak_key_state_t *ks, uint8_t b
 
 uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t delta) {
     fak_key_event_t *ev_front = key_event_queue_front();
-    uint8_t behavior_idx = (ks->key_code & KEY_CODE_HOLD_LAYER_BEHAVIOR_MASK) >> 29;
+    uint8_t behavior_idx = (ks->key_code & KEY_CODE_HOLD_BEHAVIOR_MASK) >> 29;
     __code fak_hold_tap_behavior_t *behavior = &hold_tap_behaviors[behavior_idx];
     uint8_t *state = key_event_queue_state();
 
@@ -203,7 +203,7 @@ uint8_t hold_tap_handle_event(fak_key_state_t *ks, uint8_t handle_event, int16_t
                 && ev_in->pressed == ((key_interrupt & 4) >> 2)
             ) {
                 if (key_interrupt & HOLD_TAP_KEY_INTERRUPT_DECIDE_HOLD) {
-                    ks->key_code &= KEY_CODE_HOLD_MASK;
+                    ks->key_code &= KEY_CODE_HOLD_LAYER_IDX_MODS_MASK;
                 } else {
                     ks->key_code &= KEY_CODE_TAP_MASK;
                 }

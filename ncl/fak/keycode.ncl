@@ -95,6 +95,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         WH_D = K 13,
       },
     },
+    tlex = K 'transparent_layer_exit {},
     trans = K 'transparent {},
   },
   
@@ -108,6 +109,7 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
       mod = mod_ (K 'regular),
     },
     nop = fun b => K 'nop { behavior = b },
+    tlex = fun b => K 'transparent_layer_exit { behavior = b },
     trans = K 'transparent {}
   },
   
