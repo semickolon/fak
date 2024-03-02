@@ -376,7 +376,7 @@ Yep. Caps word.
 ```
 tap.custom.fak.CWTG     # Caps word toggle
 tap.custom.fak.CWON     # Caps word on
-tap.custom.fak.CWOFF    # Caps word off
+tap.custom.fak.CWOF     # Caps word off
 ```
 
 ## Macros
