@@ -162,6 +162,7 @@ static void register_code(uint8_t key_code, uint8_t down) {
     last_tap_timestamp = get_timer();
 }
 
+#ifdef TRANS_LAYER_EXIT_ENABLE
 static uint8_t trans_layer_exit_handle(fak_key_state_t *ks) {
     uint8_t key_idx = key_event_queue_front()->key_idx;
     uint8_t layer_idx = get_trans_layer_exit_source_idx(
@@ -176,6 +177,7 @@ static uint8_t trans_layer_exit_handle(fak_key_state_t *ks) {
     ks->key_code = get_real_key_code(key_idx);
     return HANDLE_RESULT_MAPPED;
 }
+#endif
 
 static void subhandle(uint8_t handle_event) {
     fak_key_event_t *ev_front = key_event_queue_front();
