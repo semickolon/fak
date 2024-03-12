@@ -55,7 +55,7 @@ If you use Nix, you can simply use the provided flake.
 
 For easier setup, you can also use the provided Dev Container.
 
-1. Clone this repo
+1. Fork this repo
 1. Create a new codespace
 1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands
 
@@ -80,8 +80,9 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 
 ## Dev boards
 
-- [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. Keeb Supply sells a production version of the Miao, which you can [purchase here](https://keeb.supply/products/miao). (Not affiliated/sponsored)
+- [MIAO by kilipan](https://github.com/kilipan/miao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series. [Keeb Supply](https://keeb.supply/products/miao) and [Kiser Designs](https://kiserdesigns.bigcartel.com/product/miao) sell a production version of the Miao. (Not affiliated/sponsored)
 - [Partycrasher Micro by semickolon](https://oshwlab.com/kkpjfobj/partycrasher-micro). Drop-in replacement CH558L/CH559L MCU for the Pro Micro.
+- [Partycrasher Xiao by semickolon](https://oshwlab.com/kkpjfobj/parytcrasher-xiao). Drop-in replacement CH552T MCU for the Seeed Studio XIAO series.
 
 ## Keyboards
 
@@ -91,6 +92,7 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 - [idawgz32 by ChrisChrisLo](https://github.com/ChrisChrisLoLo/idawgz32). 32-key ultra-portable and ultra-affordable pocket keyboard. Onboard CH552T.
 - [Hexatana by Purox](https://git.imaginaerraum.de/Purox/hexatana). 36-key Katana-inspired keyboard designed around hexagonal keycaps. Onboard CH552T.
 - [0xPM by llmerlos](https://github.com/llmerlos/0xPM). 3x6+4 split ortholinear with USB-C interconnect. Onboard CH552T.
+- [The Endgame by OldMan6955](https://github.com/OldMan6955/The-ENDGAME-x-Miao). 36-key column-staggered unibody. Miao dev board.
 
 # Features
 
