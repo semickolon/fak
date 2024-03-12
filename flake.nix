@@ -25,6 +25,7 @@
           };
         };
         contents = with pkgs; [
+          gcc
           sdcc
           nickel
           nls
