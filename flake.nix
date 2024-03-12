@@ -24,6 +24,28 @@
             hash = "sha256-Ju2DBv3R4O48o8Fk/AFXOBIsvGMK9hJ8Ogxk47f7gcU=";
           };
         };
+        commands = [
+          {
+            help = "build and flash to central";
+            name = "flash";
+            command = "python $PRJ_ROOT/fak.py flash";
+          }
+          {
+            help = "build and flash to peripheral";
+            name = "flash-peripheral";
+            command = "python $PRJ_ROOT/fak.py flash_p";
+          }
+          {
+            help = "just build the firmware";
+            name = "compile";
+            command = "python $PRJ_ROOT/fak.py compile";
+          }
+          {
+            help = "clean up the build dir";
+            name = "clean";
+            command = "rm -r $PRJ_ROOT/build";
+          }
+        ];
         contents = with pkgs; [
           gcc
           sdcc
@@ -40,8 +62,8 @@
           tag = "latest";
           inherit contents;
         };
-        devshells.default = { devshell = { packages = contents; }; };
-        devshells.full = { devshell = { packages = contents ++ [wchisp]; }; };
+        devshells.default = { inherit commands; devshell = { packages = contents; }; };
+        devshells.full = { inherit commands; devshell = { packages = contents ++ [wchisp]; }; };
       };
     };
 }
