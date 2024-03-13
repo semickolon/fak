@@ -1,11 +1,18 @@
 {
-  "image": "jmgilman/dev-container",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
+  "features": {
+    "ghcr.io/devcontainers/features/nix:1": {
+      "extraNixConfig": "experimental-features = nix-command flakes"
+    }
+  },
   "mounts": [
     "source=nix-store,target=/nix,type=volume",
+    "source=nix-direnv,target=/home/vscode/.local/share/direnv,type=volume",
     "source=vs-exts,target=/home/vscode/.vscode-server/extensions,type=volume",
     "source=vs-exts-in,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
   ],
   "remoteUser": "vscode",
+  "onCreateCommand": "nix-env --install direnv nix-direnv; sudo chown vscode:vscode /home/vscode/.local/share/direnv; mkdir -p ~/.config/direnv; echo \"source $HOME/.nix-profile/share/nix-direnv/direnvrc\" > ~/.config/direnv/direnvrc; direnv hook bash >> ~/.bashrc",
   "customizations": {
     "vscode": {
       "extensions": [
