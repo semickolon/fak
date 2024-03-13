@@ -47,7 +47,6 @@
           }
         ];
         contents = with pkgs; [
-          gcc
           sdcc
           nickel
           nls
@@ -55,6 +54,9 @@
           meson
           python311
           ninja
+          # meson checks for C compilers to work. It doesn't count SDCC.
+          # Even though we don't use it, here we add gcc just to satisfy meson.
+          gcc
         ];
       in {
         packages.container = pkgs.dockerTools.buildImage {
