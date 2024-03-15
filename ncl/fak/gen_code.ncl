@@ -32,8 +32,7 @@ let rec codegen = {
     |> std.array.filter (fun s => s != "")
     |> util.array.join "\n",
   
-  pin_def = fun i pin out =>
-    let prefix = if out then "OUT" else "IN" in
+  pin_def = fun i pin prefix =>
     let port = std.to_string (std.number.truncate (pin / 10)) in
     let port_idx = std.to_string (pin % 10) in
     m%"
@@ -119,39 +118,76 @@ m%"
 "% in
 
 let c_file =
-  let key_state_inform = fun key_idx in_pin_idx =>
-    "key_state_inform(%{std.to_string key_idx}, !IN%{std.to_string in_pin_idx});" in
-  let set_out_pin = fun high out_pin_idx =>
-    "OUT%{std.to_string out_pin_idx} = %{if high then "1" else "0"};" in
+  let key_state_inform = fun key_idx prefix pin_idx =>
+    "key_state_inform(%{std.to_string key_idx}, !%{prefix}%{std.to_string pin_idx});" in
+
+  let set_pin = fun high prefix pin_idx =>
+    "%{prefix}%{std.to_string pin_idx} = %{if high then "1" else "0"};" in
+
+  let pin_defs_for = fun pins prefix => pins
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => codegen.pin_def index value prefix)
+    |> util.array.join "\n" in
+
+  let gen_matrix_scan_code = fun col_to_row =>
+    let mapping = if col_to_row then ir.kscan.matrix.mapping.col_to_row else ir.kscan.matrix.mapping.row_to_col in
+    let ins =  if col_to_row then ir.kscan.matrix.cols else ir.kscan.matrix.rows in
+    let outs = if col_to_row then ir.kscan.matrix.rows else ir.kscan.matrix.cols in
+    let in_prefix =  if col_to_row then "COL" else "ROW" in
+    let out_prefix = if col_to_row then "ROW" else "COL" in
+
+    let out_scan = fun col_to_row out_pin_idx out_mapping =>
+      out_mapping
+      |> util.array.enumerate
+      |> std.array.filter (fun { index, value } => value >= 0)
+      |> std.array.map (fun { index, value } => 
+          let pin_idx = std.array.at index ins in
+          let key_idx = value in
+          key_state_inform key_idx in_prefix pin_idx
+        )
+      |> (fun arr =>
+        if std.array.length arr > 0 then
+          arr
+          |> std.array.prepend "matrix_switch_delay();"
+          |> std.array.prepend (set_pin false out_prefix out_pin_idx)
+          |> std.array.append  (set_pin true  out_prefix out_pin_idx)
+          |> util.array.join "\n"
+        else
+          ""
+      )
+    in
+
+    mapping
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => out_scan false (std.array.at index outs) value)
+    |> std.array.filter (fun str => std.string.length str > 0)
+    |> util.array.join "\n\n"
+  in
 m%"
   #include "ch55x.h"
 
   %{side_central_defs}
 
-  %{
-    ir.kscan.ins
-    |> util.array.enumerate
-    |> std.array.map (fun { index, value } => codegen.pin_def index value false)
-    |> util.array.join "\n"
-  }
-
-  %{
-    ir.kscan.outs
-    |> util.array.enumerate
-    |> std.array.map (fun { index, value } => codegen.pin_def index value true)
-    |> util.array.join "\n"
-  }
+  %{pin_defs_for ir.kscan.ins "IN"}
+  %{pin_defs_for ir.kscan.cols "COL"}
+  %{pin_defs_for ir.kscan.rows "ROW"}
 
   void keyboard_init_user() {
   %{
-    ir.kscan.outs
-    |> std.array.length
-    |> std.array.generate (fun i => set_out_pin true i)
+    [[ir.kscan.cols, "COL"], [ir.kscan.rows, "ROW"]]
+    |> std.array.flat_map (fun k =>
+      let pins = std.array.at 0 k in
+      let prefix = std.array.at 1 k in
+
+      pins
+      |> std.array.length
+      |> std.array.generate (fun i => set_pin true prefix i)
+    )
     |> util.array.join "\n"
   }
   }
 
-  static void row_switch_delay() {
+  static void matrix_switch_delay() {
     for (uint8_t i = 16; i; i--) {
       __asm__ ("nop");
     }
@@ -161,34 +197,15 @@ m%"
   // Direct pins
   %{
     ir.kscan.direct
-    |> std.array.map (fun { in_idx, key_idx } => key_state_inform key_idx in_idx)
+    |> std.array.map (fun { in_idx, key_idx } => key_state_inform key_idx "IN" in_idx)
     |> util.array.join "\n"
   }
 
-  // Matrix
-  %{
-    let matrix_row_scan = fun out_pin_idx row_mapping =>
-      row_mapping
-      |> util.array.enumerate
-      |> std.array.filter (fun { index, value } => value >= 0)
-      |> std.array.map (fun { index, value } => 
-          let in_pin_idx = std.array.at index ir.kscan.matrix.ins in
-          let key_idx = value in
-          key_state_inform key_idx in_pin_idx
-        )
-      |> std.array.prepend "row_switch_delay();"
-      |> std.array.prepend (set_out_pin false out_pin_idx)
-      |> std.array.append  (set_out_pin true  out_pin_idx)
-      |> util.array.join "\n"
-    in
+  // Matrix (col-to-row)
+  %{gen_matrix_scan_code true}
 
-    ir.kscan.matrix.mapping
-    |> util.array.enumerate
-    |> std.array.map (fun { index, value } => 
-        matrix_row_scan (std.array.at index ir.kscan.matrix.outs) value
-      )
-    |> util.array.join "\n\n"
-  }
+  // Matrix (row-to-col)
+  %{gen_matrix_scan_code false}
   }
 "% in
 

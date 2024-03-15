@@ -421,45 +421,56 @@ let encode_combo = fun combo => {
 } in
 
 let Kscan = std.contract.from_predicate (fun k =>
-  let all_used_pins = k.ins @ k.outs @ feature_pins_used in
+  let all_used_pins = k.ins @ k.cols @ k.rows @ feature_pins_used in
   (util.array.unique all_used_pins) == all_used_pins
 ) in
 
 let rec _kscan | Kscan = 
-  let index_of_in = fun in_pin => util.array.index_of in_pin _kscan.ins in
-  let index_of_out = fun out_pin => util.array.index_of out_pin _kscan.outs in
+  let index_of_in = fun pin => util.array.index_of pin _kscan.ins in
+  let index_of_col = fun pin => util.array.index_of pin _kscan.cols in
+  let index_of_row = fun pin => util.array.index_of pin _kscan.rows in
 {
-  ins = kb.matrix.cols
-    @ (kb.keys
-      |> std.array.filter (fun k => k.type == 'direct)
-      |> std.array.map (fun k => k.data)
-    ),
-  outs = kb.matrix.rows,
+  ins = kb.keys
+    |> std.array.filter (fun k => k.type == 'direct)
+    |> std.array.map (fun k => k.data),
+  cols = kb.matrix.cols,
+  rows = kb.matrix.rows,
   matrix = {
-    ins = std.array.map index_of_in kb.matrix.cols,
-    outs = std.array.map index_of_out kb.matrix.rows,
+    cols = std.array.map index_of_col kb.matrix.cols,
+    rows = std.array.map index_of_row kb.matrix.rows,
     mapping =
-      let force_check = std.array.any (fun k =>
-        k.type == 'matrix 
-        && k.data.col >= 0 
-        && k.data.row >= 0
-      ) kb.keys in
-      if force_check then (
-        std.array.generate (
-          fun row => std.array.generate (
-            fun col =>
-              let k = {
-                type = 'matrix,
-                data.col = col,
-                data.row = row,
-              } in
-              if std.array.elem k kb.keys then
-                util.array.index_of k kb.keys
-              else
-                -1
-          ) (std.array.length ins)
-        ) (std.array.length outs)
-      ) else [],
+      let gen_mapping = fun direction =>
+        let force_check = std.array.any (fun k =>
+          k.type == 'matrix 
+          && k.data.col >= 0 
+          && k.data.row >= 0
+        ) kb.keys in
+
+        let ins =  if direction == 'col_to_row then cols else rows in
+        let outs = if direction == 'col_to_row then rows else cols in
+
+        if force_check then (
+          std.array.generate (
+            fun _out => std.array.generate (
+              fun _in =>
+                let k = {
+                  type = 'matrix,
+                  data.col = if direction == 'col_to_row then _in else _out,
+                  data.row = if direction == 'col_to_row then _out else _in,
+                  data.direction = direction,
+                } in
+                if std.array.elem k kb.keys then
+                  util.array.index_of k kb.keys
+                else
+                  -1
+            ) (std.array.length ins)
+          ) (std.array.length outs)
+        ) else []
+      in
+      {
+        col_to_row = gen_mapping 'col_to_row,
+        row_to_col = gen_mapping 'row_to_col,
+      } 
   },
   direct = kb.keys
     |> util.array.enumerate

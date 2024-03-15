@@ -49,6 +49,7 @@ let PhysicalKey = fun mcu matrix => {
     'matrix => {
       col | MatrixCol matrix,
       row | MatrixRow matrix,
+      direction | [| 'col_to_row, 'row_to_col |],
     },
     # Index validity check is performed in main.ncl
     'peripheral => Uint8,
@@ -76,16 +77,20 @@ let KeyboardCentralSide = {
   } | optional,
 } in
 
+let MatrixKey = fun col_pin row_pin direction => {
+  type = 'matrix,
+  data.col = col_pin,
+  data.row = row_pin,
+  data.direction = direction,
+} in
+
 {
   DirectPinKey = fun pin => {
     type = 'direct,
     data = pin
   },
-  MatrixKey = fun col_pin row_pin => {
-    type = 'matrix,
-    data.col = col_pin,
-    data.row = row_pin,
-  },
+  ColToRowKey = fun c r => MatrixKey c r 'col_to_row,
+  RowToColKey = fun c r => MatrixKey c r 'row_to_col,
   PeripheralSideKey = fun periph_key_idx => {
     type = 'peripheral,
     data = periph_key_idx,

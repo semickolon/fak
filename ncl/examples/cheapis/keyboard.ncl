@@ -1,4 +1,4 @@
-let { DirectPinKey, MatrixKey, PeripheralSideKey, .. } = import "../../fak/keyboard.ncl" in
+let { DirectPinKey, ColToRowKey, PeripheralSideKey, .. } = import "../../fak/keyboard.ncl" in
 let { CH552T, .. } = import "../../fak/mcus.ncl" in
 
 let side_central = {
@@ -18,7 +18,7 @@ let side_periph = {
   },
   split.channel = CH552T.features.uart_30_31,
   keys = 
-    let M = MatrixKey in
+    let M = ColToRowKey in
     [
       M 0 0, M 1 0, M 2 0, M 3 0, M 4 0,
       M 0 1, M 1 1, M 2 1, M 3 1, M 4 1,
@@ -39,7 +39,7 @@ side_central & {
   split.peripheral = side_periph,
   keys =
     let D = DirectPinKey in
-    let M = MatrixKey in
+    let M = ColToRowKey in
     let S = PeripheralSideKey in
     [
       M 0 0, M 1 0, M 2 0, M 3 0, M 4 0,      S 0,  S 1,  S 2,  S 3,  S 4,
