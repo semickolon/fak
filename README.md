@@ -47,7 +47,9 @@ If you use Nix, you can simply use the provided flake.
 1. `python fak.py flash`
 1. `python fak.py flash_p` for the peripheral side if you have a split
 
-**Note:** It is **recommended** you use `fak.py` instead of entering `meson` commands directly. The build system is streamlined such that Nickel automatically gives you the correct build options. However, Meson can't configure itself for this to work, and we wouldn't want to enter those build options manually everytime they change, so `fak.py` exists as a helper script that derives build options from Nickel then applies them to Meson.
+⚠️ Do **not** put .ncl files outside of the `ncl` directory. If you do, FAK won't pick up the changes you make in these files.
+
+ℹ️ It is **recommended** you use `fak.py` instead of entering `meson` commands directly. The build system is streamlined such that Nickel automatically gives you the correct build options. However, Meson can't configure itself for this to work, and we wouldn't want to enter those build options manually everytime they change, so `fak.py` exists as a helper script that derives build options from Nickel then applies them to Meson.
 
 **TL;DR:** Don't use Meson directly. `fak.py` is your friend. Makes life easy.
 
