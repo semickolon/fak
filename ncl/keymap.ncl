@@ -1,1 +1,1 @@
-import "examples/cheapis/keymap.ncl"
+import "examples/kazik/keymap.ncl"
