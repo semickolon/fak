@@ -366,9 +366,21 @@ let _xaddr_defines =
   let names = std.record.fields _xaddr_sizes in
   let sizes = std.record.values _xaddr_sizes in
   sizes
-  |> std.array.drop_last
-  |> std.array.fold_left (fun acc size => acc @ [size + util.array.last_or 0 acc]) []
-  |> std.array.prepend 0
+  |> util.array.enumerate
+  |> std.array.fold_left (fun acc { index, value } =>
+      let is_dma_addr = std.string.is_match "^USB_EP\\d$" (std.array.at index names) in
+      let start_must_even = kb.mcu.dma_must_even_address && is_dma_addr in
+
+      let start =
+        let s = acc.next in
+        if (start_must_even && s % 2 != 0) then s + 1 else s in
+
+      {
+        starts = acc.starts @ [start],
+        next = start + value,
+      }
+    ) { starts = [], next = 0 }
+  |> (fun { starts, .. } => starts)
   |> util.array.enumerate
   |> std.array.map (fun { index, value } => { "XADDR_%{std.array.at index names}" = value })
   |> std.array.fold_left (&) {}

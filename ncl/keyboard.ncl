@@ -1,1 +1,1 @@
-import "examples/kazik/keyboard.ncl"
+import "examples/klor/keyboard.ncl"

@@ -62,6 +62,7 @@ let rec mcus = {
         pins = [02, 03],
       },
     },
+    dma_must_even_address = true,
   },
 
   CH558L = CH559L,

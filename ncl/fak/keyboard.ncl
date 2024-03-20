@@ -23,6 +23,7 @@ let Mcu = {
   family | [| 'CH552, 'CH559 |],
   gpios | Set GpioPin,
   features | { _ : McuFeature gpios } | default = {},
+  dma_must_even_address | Bool | default = false,
 } in
 
 let MatrixCol = fun matrix => BoundedInt 0 (std.array.length matrix.cols) in
