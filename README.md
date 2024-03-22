@@ -95,6 +95,7 @@ Let me know if you're using FAK on a project and I'd be happy to add it here!
 - [Hexatana by Purox](https://git.imaginaerraum.de/Purox/hexatana). 36-key Katana-inspired keyboard designed around hexagonal keycaps. Onboard CH552T.
 - [0xPM by llmerlos](https://github.com/llmerlos/0xPM). 3x6+4 split ortholinear with USB-C interconnect. Onboard CH552T.
 - [The Endgame by OldMan6955](https://github.com/OldMan6955/The-ENDGAME-x-Miao). 36-key column-staggered unibody. Miao dev board.
+- [wahoo30 by rqcoon](https://github.com/rqcoon/wahoo30). 30% ortholinear unibody. Onboard CH552T.
 
 # Features
 
