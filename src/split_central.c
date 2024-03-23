@@ -47,6 +47,9 @@ __xdata __at(XADDR_REPEAT_KEY + 3) uint8_t applied_repeat_code = 0;
 
 #ifdef SPLIT_ENABLE
 extern __code uint8_t split_periph_key_indices[SPLIT_PERIPH_KEY_COUNT];
+#if SPLIT_PERIPH_ENCODER_COUNT > 0
+extern __code uint8_t split_periph_encoder_indices[SPLIT_PERIPH_ENCODER_COUNT];
+#endif
 #endif
 
 uint16_t get_last_tap_timestamp() {
@@ -472,15 +475,32 @@ static void split_periph_scan() {
     uint8_t i = 0;
     uint8_t wait_cycles = 0;
 
-    for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES; b++) {
+    for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES + SPLIT_ENCODER_COUNT_BYTES; b++) {
         while (!RI) {
             if (++wait_cycles == 0) goto exit;
         }
         RI = 0;
 
+#if SPLIT_ENCODER_COUNT_BYTES > 0
+        if (b >= SPLIT_KEY_COUNT_BYTES) {
+            for (uint8_t j = 0; j < 4; j++) {
+                encoder_scan(split_periph_encoder_indices[i], (SBUF >> (j * 2)) & 0x03);
+                if (++i == SPLIT_PERIPH_ENCODER_COUNT) break;
+            }
+
+            continue;
+        }
+#endif
+
         for (uint8_t bit = 0; bit < 8; bit++) {
             key_state_inform(split_periph_key_indices[i], (SBUF >> bit) & 1);
-            if (++i == SPLIT_PERIPH_KEY_COUNT) break;
+
+            if (++i == SPLIT_PERIPH_KEY_COUNT) {
+#if SPLIT_ENCODER_COUNT_BYTES > 0
+                i = 0; // Reset counter for encoders
+#endif
+                break;
+            }
         }
     }
 

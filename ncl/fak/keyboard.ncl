@@ -57,16 +57,23 @@ let PhysicalKey = fun mcu matrix => {
   } type
 } in
 
-let PhysicalEncoder = fun mcu => {
-  pin_a | ElementOf mcu.gpios,
-  pin_b | ElementOf mcu.gpios,
-  resolution | BoundedInt 1 128,
+let EncoderDef = fun mcu => {
+  type | [| 'physical, 'peripheral |],
+  data | match {
+    'physical => {
+      pin_a | ElementOf mcu.gpios,
+      pin_b | ElementOf mcu.gpios,
+      resolution | BoundedInt 1 128,
+    },
+    'peripheral => Uint8,
+  } type
 } in
 
 let KeyboardPeripheralSide = {
   mcu | Mcu,
   matrix | Matrix mcu | default = {},
   keys | Set (PhysicalKey mcu matrix),
+  encoders | Set (EncoderDef mcu) | default = [],
   # TODO: Check that this is a UART feature
   split.channel | ElementOf mcu.features,
 } in
@@ -75,7 +82,7 @@ let KeyboardCentralSide = {
   mcu | Mcu,
   matrix | Matrix mcu | default = {},
   keys | Set (PhysicalKey mcu matrix),
-  encoders | Set (PhysicalEncoder mcu) | default = [],
+  encoders | Set (EncoderDef mcu) | default = [],
   usb_dev | UsbDev,
   debounce_ms | Uint8 | default = DEFAULT_DEBOUNCE_MS,
   split | {
@@ -103,10 +110,17 @@ let MatrixKey = fun col_pin row_pin direction => {
     type = 'peripheral,
     data = periph_key_idx,
   },
-  Encoder = fun a b res => {
-    pin_a = a,
-    pin_b = b,
-    resolution = res,
+  PhysicalEncoder = fun a b res => {
+    type = 'physical,
+    data = {
+      pin_a = a,
+      pin_b = b,
+      resolution = res,
+    }
+  },
+  PeripheralSideEncoder = fun periph_encoder_idx => {
+    type = 'peripheral,
+    data = periph_encoder_idx,
   },
   Keyboard = KeyboardCentralSide,
 }

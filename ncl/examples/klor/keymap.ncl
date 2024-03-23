@@ -19,15 +19,16 @@ let cu = {
 
 {
   virtual_keys = [
-    encoder.cw 0,
     encoder.ccw 0,
+    encoder.cw 0,
+    combo.make 50 [0, 1],
   ],
   layers = [
     [
                  kc.Q,    kc.M,    kc.E,    kc.R,    kc.T,
         cu.BOOT, kc.A,    kc.S,    kc.D,    kc.F,    kc.G,
         md.lctl, kc.Z,    kc.X,    kc.C,    kc.V,    kc.B,    kc.N,
-                          kc.N0,   kc.BSPC, md.lsft, md.lalt, kc.J, kc.K,
+                          kc.N0,   kc.BSPC, md.lsft, md.lalt, kc.C, kc.D, kc.P,
     ],
   ]
 }

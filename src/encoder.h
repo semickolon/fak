@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
-#define ENC_READ(n) ((!ENC_A##n << 1) | !ENC_B##n)
+typedef struct {
+    uint8_t resolution;
+    uint8_t key_idx_cw;
+    uint8_t key_idx_ccw;
+} fak_encoder_def_t;
 
 void encoder_init();
 void encoder_scan(uint8_t i, uint8_t reading);

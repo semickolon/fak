@@ -12,60 +12,17 @@ in
 let combos = virtual_keys_of_type 'combo in
 let combo_count = std.array.length combos in
 
-let encoders_used = kb.encoders
-  |> util.array.enumerate
-  |> std.array.filter (fun { index, value } => std.array.any (fun enc => enc.data.index == index) (virtual_keys_of_type 'encoder))
-  |> std.array.map (fun { value, .. } => value)
-in
-let encoders_used_count = std.array.length encoders_used in
+# We can assume all encoders in `kb` are used, as preprocessed by `main.ncl`
+let encoder_count = std.array.length kb.encoders in
 
-let encoder_keys = std.array.range 0 encoders_used_count
-  |> std.array.flat_map (fun i =>
-    let enc = fun dir => { type = 'encoder, data = { index = i, direction = dir }} in
-    [enc 'cw, enc 'ccw]
-  )
-in
+let physical_key_count = std.array.length kb.keys in
+let virtual_key_count = std.array.length km.virtual_keys in
+let key_count = physical_key_count + virtual_key_count in
 
-let encoders_used_mapping = kb.encoders
-  |> std.array.map (fun enc_def => util.array.index_of_or_n1 enc_def encoders_used)
-in
+let virtual_key_idx_start = physical_key_count in
 
-let virtual_keys_with_mapped_encoders = km.virtual_keys
-  |> std.array.map (fun vk =>
-    if vk.type == 'encoder then
-      vk & { data.index | force = std.array.at vk.data.index encoders_used_mapping }
-    else
-      vk
-  )
-in
-
-let virtual_key_idx_start = std.array.length kb.keys in
-let combo_key_idx_start = virtual_key_idx_start in
-let encoder_key_idx_start = combo_key_idx_start + std.array.length combos in
-
-let normalized_virtual_keys = combos @ encoder_keys in
-let normalized_key_mapping =
-  [
-    std.array.range 0 (std.array.length kb.keys),
-    normalized_virtual_keys
-    |> std.array.map (fun vk => util.array.index_of_or_n1 vk virtual_keys_with_mapped_encoders)
-    |> std.array.map (fun i => if i >= 0 then i + virtual_key_idx_start else i),
-  ]
-  |> std.array.fold_left (@) []
-in
-
-let key_count = std.array.length normalized_key_mapping in
-
-let normalized_layers = km.layers
-  |> std.array.map (fun layer =>
-    let XXXX = tap.none & hold.none in
-    normalized_key_mapping
-    |> std.array.map (fun mapping => if mapping >= 0 then std.array.at mapping layer else XXXX)
-  )
-in
-
-let keycodes = std.array.flatten normalized_layers in
-let layer_count = std.array.length normalized_layers in
+let keycodes = std.array.flatten km.layers in
+let layer_count = std.array.length km.layers in
 
 let keycode_is_hold_tap = fun kc => 
   kc.type == 'hold_tap
@@ -100,8 +57,9 @@ let feature_keys_used | Set String = features_used
   |> std.array.flat_map (fun feature => feature.keys)
 in
 
-let encoder_pins_used = encoders_used
-  |> std.array.flat_map (fun { pin_a, pin_b, .. } => [pin_a, pin_b])
+let encoder_pins_used = kb.encoders
+  |> std.array.filter ( fun { type, .. } => type == 'physical)
+  |> std.array.flat_map (fun { data, .. } => [data.pin_a, data.pin_b])
 in
 
 let _hold_tap_behaviors =
@@ -324,7 +282,7 @@ let _central_defines = {
   COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
     |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
   
-  ENCODER_COUNT = encoders_used_count,
+  ENCODER_COUNT = encoder_count,
 
   USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE, MOUSE_KEYS_ENABLE]
     |> std.array.filter ((==) true)
@@ -353,9 +311,6 @@ let _central_defines = {
   COMBO_MAX_KEY_COUNT = combos
     |> std.array.map (fun c => std.array.length c.data.key_indices)
     |> util.array.max,
-  COMBO_KEY_IDX_START = combo_key_idx_start,
-} & util.record.only_if (encoders_used_count > 0) {
-  ENCODER_KEY_IDX_START = encoder_key_idx_start,
 } in
 
 let _xaddr_sizes = let
@@ -416,10 +371,10 @@ in {
     COMBO_KEY_QUEUE = sizeof.uint8_t + (sizeof.fak_combo_key_queue_entry_t * _central_defines.COMBO_KEY_QUEUE_LEN),
   }
 )
-& util.record.only_if (encoders_used_count > 0) (
+& util.record.only_if (encoder_count > 0) (
   {
-    ENCODER_STEPS = sizeof.int8_t * encoders_used_count,
-    ENCODER_LAST_NUM = sizeof.uint8_t * std.number.floor ((encoders_used_count + 3) / 4),
+    ENCODER_STEPS = sizeof.int8_t * encoder_count,
+    ENCODER_LAST_NUM = sizeof.uint8_t * std.number.floor ((encoder_count + 3) / 4),
   }
 )
 & util.record.only_if _central_defines.STICKY_ENABLE {
@@ -471,6 +426,11 @@ let _defines = {
   SPLIT_PERIPH_KEY_COUNT =
     (if side == 'central then kb.split.peripheral else kb).keys
     |> std.array.length,
+  SPLIT_PERIPH_ENCODER_COUNT =
+    let expected_type = if side == 'central then 'peripheral else 'physical in
+    kb.encoders
+    |> std.array.filter (fun { type, .. } => type == expected_type)
+    |> std.array.length,
 } & util.record.only_if (side != 'peripheral) (
   _central_defines & _xaddr_defines
 )
@@ -491,9 +451,10 @@ let encode_hold_tap_behavior = fun b => {
   global_quick_tap_ms = b.global_quick_tap_ms
 } in
 
-let encode_combo = fun combo => {
+let encode_combo = fun combo key_idx => {
   timeout_ms = combo.timeout_ms,
   key_indices = combo.key_indices,
+  key_idx_mapping = key_idx,
   flags =
     std.array.length combo.key_indices - 2
     + util.bit.shift (if combo.slow_release then 1 else 0) 3,
@@ -565,9 +526,10 @@ let rec _kscan | Kscan =
 {
   defines = _defines,
   kscan = _kscan,
+  "%{"side"}" = side,
 
   key_map = if side == 'peripheral then [] else
-    std.array.map (fun layer => std.array.map encode_kc layer) normalized_layers,
+    std.array.map (fun layer => std.array.map encode_kc layer) km.layers,
 
   hold_tap_behaviors = if side == 'peripheral then [] else
     std.array.map encode_hold_tap_behavior _hold_tap_behaviors,
@@ -576,9 +538,30 @@ let rec _kscan | Kscan =
     std.array.map encode_kc (std.array.flatten _tap_dance_bindings),
   
   combo_defs = if side == 'peripheral then [] else
-    std.array.map (fun c => encode_combo c.data) combos,
+    std.array.map (fun c => encode_combo
+      c.data
+      (virtual_key_idx_start + util.array.index_of c km.virtual_keys)
+    ) combos,
   
-  encoder_defs = encoders_used,
+  encoder_defs = kb.encoders
+    |> util.array.enumerate
+    |> std.array.map (fun { index, value } => 
+        let type = value.type in
+        let data = value.data in
+        let find_key_idx = fun dir =>
+          let vk = { type = 'encoder, data = { "%{"index"}" = index, direction = dir } } in
+          let i = util.array.index_of_or_n1 vk km.virtual_keys in
+          if i < 0 then 0 else (virtual_key_idx_start + i)
+        in
+        {
+          resolution = (if type == 'peripheral then (std.array.at data kb.split.peripheral.encoders).data else data).resolution,
+          key_idx_cw = find_key_idx 'cw,
+          key_idx_ccw = find_key_idx 'ccw,
+        } & util.record.only_if (type == 'physical) {
+          pin_a = data.pin_a,
+          pin_b = data.pin_b,
+        }
+    ),
 
   macro_steps = if side =='peripheral then [] else _macro_steps,
   macro_step_args = if side =='peripheral then [] else _macro_step_args,
@@ -599,5 +582,12 @@ let rec _kscan | Kscan =
       kb.keys
       |> util.array.enumerate
       |> std.array.filter (fun { index, value } => value.type == 'peripheral)
-      |> std.array.map (fun { index, value } => index)
+      |> std.array.map (fun { index, value } => index),
+
+  split_periph_encoder_indices =
+    if side != 'central then [] else
+      kb.encoders
+      |> util.array.enumerate
+      |> std.array.filter (fun { index, value } => value.type == 'peripheral)
+      |> std.array.map (fun { index, value } => index),
 }

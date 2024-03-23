@@ -184,7 +184,7 @@ void combo_handle() {
             combo_state.timestamp = get_timer();
         } else if (combo_state.state == 1 && will_own) {
             combo_state.state = 2;
-            push_key_event(COMBO_KEY_IDX_START + i, 1);
+            push_key_event(combo_def.key_idx_mapping, 1);
         } else if (combo_state.state == 2) {
             uint8_t release = 0;
 
@@ -196,7 +196,7 @@ void combo_handle() {
 
             if (release) {
                 combo_state.state = 0;
-                push_key_event(COMBO_KEY_IDX_START + i, 0);
+                push_key_event(combo_def.key_idx_mapping, 0);
             }
         }
 exit_outer:

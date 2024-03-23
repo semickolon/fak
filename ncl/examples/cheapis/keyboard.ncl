@@ -1,4 +1,4 @@
-let { DirectPinKey, ColToRowKey, PeripheralSideKey, .. } = import "../../fak/keyboard.ncl" in
+let { DirectPinKey, ColToRowKey, PeripheralSideKey, PhysicalEncoder, PeripheralSideEncoder, .. } = import "../../fak/keyboard.ncl" in
 let { CH552T, .. } = import "../../fak/mcus.ncl" in
 
 let side_central = {
@@ -24,7 +24,10 @@ let side_periph = {
       M 0 1, M 1 1, M 2 1, M 3 1, M 4 1,
       M 0 2, M 1 2, M 2 2, M 3 2, M 4 2,
       M 0 3, M 1 3,
-    ]
+    ],
+  encoders = let E = PhysicalEncoder in [
+    E 12 13 4,
+  ],
 } in
 
 side_central & {
@@ -46,5 +49,12 @@ side_central & {
       M 0 1, M 1 1, M 2 1, M 3 1, M 4 1,      S 5,  S 6,  S 7,  S 8,  S 9,
       M 0 2, M 1 2, M 2 2, M 3 2, M 4 2,      S 10, S 11, S 12, S 13, S 14,
                            M 3 3, M 4 3,      S 15, S 16,
-    ]
+    ],
+  encoders =
+    let E = PhysicalEncoder in
+    let S = PeripheralSideEncoder in
+    [
+      E 30 11 4,
+      S 0,
+    ],
 }

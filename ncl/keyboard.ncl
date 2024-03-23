@@ -1,1 +1,1 @@
-import "examples/klor/keyboard.ncl"
+import "examples/cheapis/keyboard.ncl"

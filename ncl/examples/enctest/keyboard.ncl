@@ -1,4 +1,4 @@
-let { ColToRowKey, DirectPinKey, Encoder, .. } = import "../../fak/keyboard.ncl" in
+let { ColToRowKey, DirectPinKey, PhysicalEncoder, .. } = import "../../fak/keyboard.ncl" in
 let { CH552T, .. } = import "../../fak/mcus.ncl" in
 
 {
@@ -8,7 +8,7 @@ let { CH552T, .. } = import "../../fak/mcus.ncl" in
     product_id = 1,
     product_ver = 257, # 0x0101
   },
-  encoders = let E = Encoder in [
+  encoders = let E = PhysicalEncoder in [
     E 12 10 8,
     E 32 11 4,
   ],

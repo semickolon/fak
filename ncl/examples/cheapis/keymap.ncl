@@ -1,8 +1,11 @@
-let { tap, hold, td, combo, .. } = import "../../fak/keycode.ncl" in
+let { tap, hold, td, combo, encoder, .. } = import "../../fak/keycode.ncl" in
 let util = import "../../fak/util_functions.ncl" in
 
 let virtual_keys' = [
-  combo.make 30 [12, 13],
+  encoder.cw 0,
+  encoder.ccw 0,
+  encoder.cw 1,
+  encoder.ccw 1,
 ] in
 
 let key_count = 34 + std.array.length virtual_keys' in
@@ -43,7 +46,7 @@ let make_hrm = fun key_idx =>
       ki.tr, ki.tr, ki.tr, ki.tr, ki.tp,    ki.hr, ki.hr, ki.hr, ki.hr, ki.hr,
       ki.tp, ki.tp, ki.tp, ki.tp, ki.tp,    ki.hr, ki.hr, ki.hr, ki.hr, ki.hr,
                            ki.hp, ki.hp,    ki.hp, ki.hp,
-                           ki.xx,
+                           ki.xx, ki.xx, ki.xx, ki.xx,
     ]
   } in
 
@@ -53,7 +56,7 @@ let make_hrm = fun key_idx =>
       ki.hr, ki.hr, ki.hr, ki.hr, ki.hr,    ki.tp, ki.tr, ki.tr, ki.tr, ki.tr,
       ki.hr, ki.hr, ki.hr, ki.hr, ki.hr,    ki.tp, ki.tp, ki.tp, ki.tp, ki.tp,
                            ki.hp, ki.hp,    ki.hp, ki.hp,
-                           ki.xx,
+                           ki.xx, ki.xx, ki.xx, ki.xx,
     ]
   } in
 
@@ -148,6 +151,9 @@ let keymap = {
                                  thumb 0, thumb 1,    thumb 2, thumb 3,
       # Combo [12, 13]
       td.make 200 [MO 3, cu.BOOT],
+      XXXX,
+      XXXX,
+      XXXX,
     ],
     L' [
       XXXX,    XXXX,    XXXX,    XXXX,    XXXX,       cu.PWSP, cu.CT,   cu.CST,  cu.NWSP, XXXX,

@@ -54,7 +54,7 @@ let side_central_defs =
 m%"
   %{
     if layer_count == 0 then
-      "// (No layers. This must be peripheral side.)"
+      std.fail_with "No layers. There must be at least one."
     else if layer_count == 1 then
       "__code uint32_t key_map[KEY_COUNT] = %{codegen.val.array (std.array.at 0 ir.key_map)};"
     else
@@ -86,6 +86,13 @@ m%"
   }
 
   %{
+    if std.array.length ir.split_periph_encoder_indices > 0 then
+      "__code uint8_t split_periph_encoder_indices[SPLIT_PERIPH_ENCODER_COUNT] = %{codegen.val.array ir.split_periph_encoder_indices};"
+    else
+      "// (No split periph encoder indices)"
+  }
+
+  %{
     if std.array.length ir.combo_defs > 0 then
       m%"
         #include "combo.h"
@@ -97,10 +104,16 @@ m%"
 
   %{
     if std.array.length ir.encoder_defs > 0 then
-      let resolutions = std.array.map (fun enc => enc.resolution) ir.encoder_defs in
+      let defs = std.array.map (fun enc => 
+        {
+          resolution = enc.resolution,
+          key_idx_cw = enc.key_idx_cw,
+          key_idx_ccw = enc.key_idx_ccw,
+        }) ir.encoder_defs
+      in
       m%"
         #include "encoder.h"
-        __code uint8_t encoder_resolution[ENCODER_COUNT] = %{codegen.val.array resolutions};
+        __code fak_encoder_def_t encoder_defs[ENCODER_COUNT] = %{codegen.val.array defs};
       "%
     else
       "// (No encoder defs)"
@@ -174,17 +187,22 @@ let c_file =
     |> std.array.filter (fun str => std.string.length str > 0)
     |> util.array.join "\n\n"
   in
+
+  let physical_encoders_enumerated =
+    ir.encoder_defs
+    |> util.array.enumerate
+    |> std.array.filter (fun { index, .. } => !(std.array.elem index ir.split_periph_encoder_indices))
+  in
 m%"
   #include "ch55x.h"
 
-  %{side_central_defs}
+  %{if ir.side != 'peripheral then side_central_defs else ""}
 
   %{pin_defs_for ir.kscan.ins "IN"}
   %{pin_defs_for ir.kscan.cols "COL"}
   %{pin_defs_for ir.kscan.rows "ROW"}
   %{
-    ir.encoder_defs
-    |> util.array.enumerate
+    physical_encoders_enumerated
     |> std.array.flat_map (fun { index, value } => [
       codegen.pin_def index value.pin_a "ENC_A",
       codegen.pin_def index value.pin_b "ENC_B",
@@ -229,8 +247,7 @@ m%"
 
   // Encoders
   %{
-    ir.encoder_defs
-    |> util.array.enumerate
+    physical_encoders_enumerated
     |> std.array.map (fun { index, .. } => let i = std.to_string index in
       "encoder_scan(%{i}, ENC_READ(%{i}));")
     |> util.array.join "\n"

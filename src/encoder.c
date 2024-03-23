@@ -4,7 +4,7 @@
 __xdata __at(XADDR_ENCODER_STEPS) int8_t encoder_steps[ENCODER_COUNT];
 __xdata __at(XADDR_ENCODER_LAST_NUM) uint8_t encoder_last_num[(ENCODER_COUNT + 3) / 4];
 
-extern __code uint8_t encoder_resolution[ENCODER_COUNT];
+extern __code fak_encoder_def_t encoder_defs[ENCODER_COUNT];
 
 void encoder_init() {
     for (uint8_t i = ENCODER_COUNT; i;) {
@@ -47,12 +47,14 @@ void encoder_scan(uint8_t i, uint8_t reading) {
         steps += direction;
     }
 
-    if (steps != 0 && steps % encoder_resolution[i] == 0) {
-        uint8_t key_idx = ENCODER_KEY_IDX_START + (i * 2) + (steps > 0 ? 0 : 1);
+    if (steps != 0 && steps % encoder_defs[i].resolution == 0) {
+        uint8_t key_idx = steps > 0 ? encoder_defs[i].key_idx_ccw : encoder_defs[i].key_idx_cw;
         steps = 0;
 
-        push_key_event(key_idx, 1);
-        push_key_event(key_idx, 0);
+        if (key_idx) {
+            push_key_event(key_idx, 1);
+            push_key_event(key_idx, 0);
+        }
     }
 
     encoder_steps[i] = steps;

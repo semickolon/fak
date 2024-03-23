@@ -191,7 +191,7 @@ let VirtualKey = {
       require_prior_idle_ms | Uint16 | default = 0,
     },
     'encoder => {
-      index | Uint 8,
+      index | BoundedInt 0 (std.array.length kb.encoders),
       direction | [| 'cw, 'ccw |],
     },
   }) type

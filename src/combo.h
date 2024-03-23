@@ -9,6 +9,7 @@
 typedef struct {
     uint8_t flags;
     uint8_t timeout_ms;
+    uint8_t key_idx_mapping;
 #ifdef COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE
     uint16_t require_prior_idle_ms;
 #endif
