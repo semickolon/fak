@@ -135,6 +135,16 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
     require_prior_idle_ms = fun ms => { data.require_prior_idle_ms = ms },
   },
 
+  encoder = 
+    let make = fun i dir => {
+      type = 'encoder,
+      data = { index = i, direction = dir },
+    } in
+  {
+    cw = fun i => make i 'cw,
+    ccw = fun i => make i 'ccw,
+  },
+
   macro = {
     make = fun steps => {
       type = 'hold_tap,

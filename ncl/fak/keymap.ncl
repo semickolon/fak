@@ -182,14 +182,18 @@ let ComboKeyIndices =
 in
 
 let VirtualKey = {
-  type | [| 'combo |],
+  type | [| 'combo, 'encoder |],
   data | (match {
     'combo => {
       timeout_ms | Uint8 | default = 50,
       key_indices | ComboKeyIndices,
       slow_release | Bool | default = false,
       require_prior_idle_ms | Uint16 | default = 0,
-    }
+    },
+    'encoder => {
+      index | Uint 8,
+      direction | [| 'cw, 'ccw |],
+    },
   }) type
 } in
 

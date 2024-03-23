@@ -96,6 +96,17 @@ m%"
   }
 
   %{
+    if std.array.length ir.encoder_defs > 0 then
+      let resolutions = std.array.map (fun enc => enc.resolution) ir.encoder_defs in
+      m%"
+        #include "encoder.h"
+        __code uint8_t encoder_resolution[ENCODER_COUNT] = %{codegen.val.array resolutions};
+      "%
+    else
+      "// (No encoder defs)"
+  }
+
+  %{
     if std.array.length ir.conditional_layers > 0 then
       m%"
         #include "keymap.h"
@@ -171,6 +182,15 @@ m%"
   %{pin_defs_for ir.kscan.ins "IN"}
   %{pin_defs_for ir.kscan.cols "COL"}
   %{pin_defs_for ir.kscan.rows "ROW"}
+  %{
+    ir.encoder_defs
+    |> util.array.enumerate
+    |> std.array.flat_map (fun { index, value } => [
+      codegen.pin_def index value.pin_a "ENC_A",
+      codegen.pin_def index value.pin_b "ENC_B",
+    ])
+    |> util.array.join "\n"
+  }
 
   void keyboard_init_user() {
   %{
@@ -206,6 +226,15 @@ m%"
 
   // Matrix (row-to-col)
   %{gen_matrix_scan_code false}
+
+  // Encoders
+  %{
+    ir.encoder_defs
+    |> util.array.enumerate
+    |> std.array.map (fun { index, .. } => let i = std.to_string index in
+      "encoder_scan(%{i}, ENC_READ(%{i}));")
+    |> util.array.join "\n"
+  }
   }
 "% in
 

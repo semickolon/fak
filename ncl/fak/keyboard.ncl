@@ -57,6 +57,12 @@ let PhysicalKey = fun mcu matrix => {
   } type
 } in
 
+let PhysicalEncoder = fun mcu => {
+  pin_a | ElementOf mcu.gpios,
+  pin_b | ElementOf mcu.gpios,
+  resolution | BoundedInt 1 128,
+} in
+
 let KeyboardPeripheralSide = {
   mcu | Mcu,
   matrix | Matrix mcu | default = {},
@@ -69,6 +75,7 @@ let KeyboardCentralSide = {
   mcu | Mcu,
   matrix | Matrix mcu | default = {},
   keys | Set (PhysicalKey mcu matrix),
+  encoders | Set (PhysicalEncoder mcu) | default = [],
   usb_dev | UsbDev,
   debounce_ms | Uint8 | default = DEFAULT_DEBOUNCE_MS,
   split | {
@@ -95,6 +102,11 @@ let MatrixKey = fun col_pin row_pin direction => {
   PeripheralSideKey = fun periph_key_idx => {
     type = 'peripheral,
     data = periph_key_idx,
+  },
+  Encoder = fun a b res => {
+    pin_a = a,
+    pin_b = b,
+    resolution = res,
   },
   Keyboard = KeyboardCentralSide,
 }

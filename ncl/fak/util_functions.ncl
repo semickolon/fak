@@ -16,6 +16,13 @@ let rec _array = {
     let matches = std.array.filter (fun { index, value } => value == e) (enumerate arr) in
     (std.array.first matches).index,
   
+  index_of_or_n1 = fun e arr =>
+    let matches = std.array.filter (fun { index, value } => value == e) (enumerate arr) in
+    if std.array.length matches > 0 then
+      (std.array.first matches).index
+    else
+      -1,
+  
   join = fun sep arr => std.array.fold_left (++) "" (std.array.intersperse sep arr),
 
   chunk = fun size arr =>

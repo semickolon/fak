@@ -14,6 +14,9 @@
 #if COMBO_COUNT > 0
 #include "combo.h"
 #endif
+#if ENCODER_COUNT > 0
+#include "encoder.h"
+#endif
 #ifdef MOUSE_KEYS_ENABLE
 #include "mouse.h"
 #endif
@@ -492,12 +495,14 @@ void keyboard_init() {
     }
 
     for (uint8_t i = 8; i;) {
-        i--;
-        strong_mods_ref_count[i] = 0;
+        strong_mods_ref_count[--i] = 0;
     }
 
 #if COMBO_COUNT > 0
     combo_init();
+#endif
+#if ENCODER_COUNT > 0
+    encoder_init();
 #endif
 #ifdef SPLIT_ENABLE
     split_periph_init();
