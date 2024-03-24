@@ -13,6 +13,7 @@ fun ir =>
       "src/mouse.c" = ir.defines.MOUSE_KEYS_ENABLE,
       "src/macro.c" = ir.defines.MACRO_KEYS_ENABLE,
       "src/caps_word.c" = ir.defines.CAPS_WORD_ENABLE,
+      "src/soft_serial.c" = std.record.has_field "SPLIT_SOFT_SERIAL_PIN" ir.defines,
     }
     |> std.record.filter (fun _k pred => pred)
     |> std.record.to_array

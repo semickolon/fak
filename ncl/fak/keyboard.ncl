@@ -43,6 +43,15 @@ let Matrix = fun mcu => {
   rows | Array (ElementOf mcu.gpios) | default = [],
 } in
 
+let SplitChannel = fun mcu label value =>
+  if std.record.has_field "type" value && value.type == 'uart then
+    std.contract.apply (ElementOf mcu.features) label value
+  else if std.record.has_field "soft_serial_pin" value then
+    std.contract.apply (ElementOf mcu.gpios) label value.soft_serial_pin
+  else
+    std.contract.blame_with_message "Invalid split channel. Only UART or soft serial pin are supported."
+in
+
 let PhysicalKey = fun mcu matrix => {
   type | [| 'direct, 'matrix, 'peripheral |],
   data | match {
@@ -74,8 +83,7 @@ let KeyboardPeripheralSide = {
   matrix | Matrix mcu | default = {},
   keys | Set (PhysicalKey mcu matrix),
   encoders | Set (EncoderDef mcu) | default = [],
-  # TODO: Check that this is a UART feature
-  split.channel | ElementOf mcu.features,
+  split.channel | SplitChannel mcu,
 } in
 
 let KeyboardCentralSide = {
@@ -86,8 +94,7 @@ let KeyboardCentralSide = {
   usb_dev | UsbDev,
   debounce_ms | Uint8 | default = DEFAULT_DEBOUNCE_MS,
   split | {
-    # TODO: Check that this is a UART feature
-    channel | ElementOf mcu.features,
+    channel | SplitChannel mcu,
     peripheral | KeyboardPeripheralSide,
   } | optional,
 } in
@@ -121,6 +128,9 @@ let MatrixKey = fun col_pin row_pin direction => {
   PeripheralSideEncoder = fun periph_encoder_idx => {
     type = 'peripheral,
     data = periph_encoder_idx,
+  },
+  SoftSerialPin = fun pin => {
+    soft_serial_pin = pin,
   },
   Keyboard = KeyboardCentralSide,
 }

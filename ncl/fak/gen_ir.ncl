@@ -12,6 +12,10 @@ in
 let combos = virtual_keys_of_type 'combo in
 let combo_count = std.array.length combos in
 
+let soft_serial_pin = if side == 'self then -1 else
+  if (std.is_number kb.split.channel) then kb.split.channel else -1
+in
+
 # We can assume all encoders in `kb` are used, as preprocessed by `main.ncl`
 let encoder_count = std.array.length kb.encoders in
 
@@ -46,7 +50,9 @@ let deep_keycodes = std.array.flat_map (fun kc => match {
 } kc.type) keycodes in
 
 let features_used =
-  if side == 'self then [] else [kb.split.channel]
+  if side == 'self then [] else 
+    [kb.split.channel]
+    |> std.array.filter (fun e => std.is_record e)
 in
 
 let feature_pins_used = features_used
@@ -431,6 +437,10 @@ let _defines = {
     kb.encoders
     |> std.array.filter (fun { type, .. } => type == expected_type)
     |> std.array.length,
+} & util.record.only_if (soft_serial_pin >= 0) {
+  SPLIT_SOFT_SERIAL_PIN =
+    let p = soft_serial_pin in
+    "P%{std.to_string (std.number.floor (p / 10))}.%{std.to_string (p % 10)}",
 } & util.record.only_if (side != 'peripheral) (
   _central_defines & _xaddr_defines
 )
@@ -463,7 +473,9 @@ let encode_combo = fun combo key_idx => {
 } in
 
 let Kscan = std.contract.from_predicate (fun k =>
-  let all_used_pins = k.ins @ k.cols @ k.rows @ encoder_pins_used @ feature_pins_used in
+  let all_used_pins = k.ins @ k.cols @ k.rows @ encoder_pins_used @ feature_pins_used
+    # Include soft serial pin
+    @ (if soft_serial_pin >= 0 then [soft_serial_pin] else []) in
   (util.array.unique all_used_pins) == all_used_pins
 ) in
 

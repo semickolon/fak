@@ -16,15 +16,15 @@ void TMR0_ISR() __interrupt(INT_NO_TMR0) {
     TMR0_interrupt();
 }
 
-#if defined(SPLIT_ENABLE) && defined(SPLIT_SIDE_PERIPHERAL)
-void UART_interrupt();
-void UART_ISR() __interrupt(INT_NO_UART0) {
-    UART_interrupt();
+#if defined(SPLIT_ENABLE) && !defined(SPLIT_SOFT_SERIAL_PIN)
+#ifdef SPLIT_SIDE_PERIPHERAL
+void UART0_interrupt();
+void UART0_ISR() __interrupt(INT_NO_UART0) {
+    UART0_interrupt();
 }
 #endif
 
-#ifdef SPLIT_ENABLE
-static void UART_init() {
+static void UART0_init() {
     // UART0 @ Timer1, 750k bps
     SM0 = 0;
     SM1 = 1;
@@ -44,8 +44,8 @@ static void UART_init() {
 
 static void main() {
     CLK_init();
-#ifdef SPLIT_ENABLE
-    UART_init();
+#if defined(SPLIT_ENABLE) && !defined(SPLIT_SOFT_SERIAL_PIN)
+    UART0_init();
 #endif
 #ifdef SPLIT_SIDE_CENTRAL
     TMR0_init();
@@ -58,6 +58,14 @@ static void main() {
 #endif
 #ifdef UART1_ALT
     PIN_FUNC |= bUART1_PIN_X;
+#endif
+
+#if CH55X == 9
+    // This is to get same behavior as CH552 to drive pins high immediately
+    P0_DIR = 0xFF;
+    P1_DIR = 0xFF;
+    P2_DIR = 0xFF;
+    P3_DIR = 0xFF;
 #endif
 
     EA = 1;

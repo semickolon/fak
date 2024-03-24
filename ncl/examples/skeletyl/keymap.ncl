@@ -200,7 +200,8 @@ in
       # ]) @ (std.array.map
       #   (fun c => macro.tap kc."%{c}")
       #   (std.string.characters "POLYCHROMAGAMES.COM"))),
-      kc.BSPC,
+      # kc.BSPC,
+      cu.BOOT,
       tap.custom.fak.CWON,
     ],
     L' [

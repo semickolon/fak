@@ -26,6 +26,9 @@
 #ifdef CAPS_WORD_ENABLE
 #include "caps_word.h"
 #endif
+#ifdef SPLIT_SOFT_SERIAL_PIN
+#include "soft_serial.h"
+#endif
 
 __xdata __at(XADDR_LAST_TAP_TIMESTAMP) uint16_t last_tap_timestamp = 0;
 __xdata __at(XADDR_KEY_STATES) fak_key_state_t key_states[KEY_COUNT];
@@ -460,10 +463,19 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
 }
 
 #ifdef SPLIT_ENABLE
-__bit did_not_respond = 1;
+__bit split_periph_did_not_respond;
 
 static uint8_t split_periph_req(uint8_t request) {
-    did_not_respond = 1;
+    split_periph_did_not_respond = 1;
+#ifdef SPLIT_SOFT_SERIAL_PIN
+    soft_serial_sbuf = request;
+    EA = 0;
+    soft_serial_send();
+    soft_serial_recv();
+    EA = 1;
+    split_periph_did_not_respond = soft_serial_did_not_respond;
+    return soft_serial_sbuf;
+#else
     SBUF = request;
     while (!TI) {}
     TI = 0;
@@ -474,21 +486,22 @@ static uint8_t split_periph_req(uint8_t request) {
         if (++request == 0) goto exit;
     }
     RI = 0;
-    did_not_respond = 0;
+    split_periph_did_not_respond = 0;
 exit:
     REN = 0;
     return SBUF;
+#endif
 }
 
 static void split_periph_scan() {
     uint8_t i = 0;
 
     for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES; b++) {
-        split_periph_req(SPLIT_MSG_REQUEST_KEYS + b);
-        if (did_not_respond) return;
+        uint8_t resp = split_periph_req(SPLIT_MSG_REQUEST_KEYS + b);
+        if (split_periph_did_not_respond) return;
 
         for (uint8_t bit = 0; bit < 8; bit++) {
-            key_state_inform(split_periph_key_indices[i], (SBUF >> bit) & 1);
+            key_state_inform(split_periph_key_indices[i], (resp >> bit) & 1);
             if (++i == SPLIT_PERIPH_KEY_COUNT) break;
         }
     }
@@ -497,11 +510,11 @@ static void split_periph_scan() {
     i = 0;
 
     for (uint8_t b = 0; b < SPLIT_ENCODER_COUNT_BYTES; b++) {
-        split_periph_req(SPLIT_MSG_REQUEST_ENCODERS + b);
-        if (did_not_respond) return;
+        uint8_t resp = split_periph_req(SPLIT_MSG_REQUEST_ENCODERS + b);
+        if (split_periph_did_not_respond) return;
 
         for (uint8_t j = 0; j < 4; j++) {
-            encoder_scan(split_periph_encoder_indices[i], (SBUF >> (j * 2)) & 0x03);
+            encoder_scan(split_periph_encoder_indices[i], (resp >> (j * 2)) & 0x03);
             if (++i == SPLIT_PERIPH_ENCODER_COUNT) break;
         }
     }
@@ -518,6 +531,9 @@ void keyboard_init() {
         strong_mods_ref_count[--i] = 0;
     }
 
+#ifdef SPLIT_SOFT_SERIAL_PIN
+    soft_serial_init();
+#endif
 #if COMBO_COUNT > 0
     combo_init();
 #endif

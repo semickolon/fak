@@ -73,6 +73,7 @@ foreach side : sides
         endif
     elif side == 'peripheral'
         sources += sources_peripheral
+        sources += ['src/soft_serial.c']
     endif
 
     rel = compiler.process(sources)

@@ -39,15 +39,15 @@ static inline void exit_safe_mode() {
 }
 
 void CLK_init() {
+    enter_safe_mode();
 #if CH55X == 2
     // Internal clock @ 24MHz
-    enter_safe_mode();
     CLOCK_CFG = (CLOCK_CFG & ~MASK_SYS_CK_SEL) | 0b110;
-    exit_safe_mode();
 #elif CH55X == 9
-    // Internal clock @ 12MHz
-    // TODO: [CH559] Do we need to do anything here?
+    // Internal clock @ 24MHz
+    CLOCK_CFG = (CLOCK_CFG & ~MASK_SYS_CK_DIV) | 12;  // Fsys = 288MHz / 12 = 24MHz
 #endif
+    exit_safe_mode();
 }
 
 #pragma save

@@ -5,6 +5,7 @@ let md = hold.reg.mod in
 let XXXX = tap.none & hold.none in
 let TTTT = tap.trans & hold.trans in
 let MO = hold.reg.layer in
+let me = tap.custom.media in
 
 let cu = {
   SFTZ = td.make 100 [
@@ -21,14 +22,18 @@ let cu = {
   virtual_keys = [
     encoder.ccw 0,
     encoder.cw 0,
+    encoder.ccw 1,
+    encoder.cw 1,
     combo.make 50 [0, 1],
   ],
   layers = [
     [
-                 kc.Q,    kc.M,    kc.E,    kc.R,    kc.T,
-        cu.BOOT, kc.A,    kc.S,    kc.D,    kc.F,    kc.G,
-        md.lctl, kc.Z,    kc.X,    kc.C,    kc.V,    kc.B,    kc.N,
-                          kc.N0,   kc.BSPC, md.lsft, md.lalt, kc.C, kc.D, kc.P,
-    ],
+                 kc.Q,    kc.W,    kc.E,    kc.R,    kc.T,            kc.Y, kc.U, kc.I, kc.O, kc.P,
+        cu.BOOT, kc.A,    kc.S,    kc.D,    kc.F,    kc.G,         kc.H,  kc.J, kc.K, kc.L, kc.QUOT, kc.SCLN,
+        md.lctl, kc.Z,    kc.X,    kc.C,    kc.V,    kc.B,    kc.N,   kc.X,  kc.N, kc.M, kc.COMM, kc.DOT, kc.SLSH, md.lalt,
+                          kc.N0,   kc.BSPC, md.lsft, md.lalt,                kc.N1, kc.N2, kc.SPC, kc.N4,
+        me.PREV, me.NEXT, me.VOLD, me.VOLU,
+        cu.BOOT,
+    ]
   ]
 }

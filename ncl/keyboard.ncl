@@ -1,1 +1,1 @@
-import "examples/skeletyl/keyboard.ncl"
+import "examples/klor/keyboard.ncl"
