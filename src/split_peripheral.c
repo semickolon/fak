@@ -34,9 +34,6 @@ void keyboard_init() {
     }
 #endif
 
-    SM0 = 1;
-    SM1 = 0;
-    SM2 = 0;
     REN = 1;
     ES = 1;
 
@@ -49,23 +46,23 @@ void keyboard_scan() {
 
 void UART_interrupt() {
     if (!RI) return;
+    uint8_t request = SBUF;
     RI = 0;
     REN = 0;
-    TB8 = 0;
 
-    for (uint8_t i = 0; i < SPLIT_KEY_COUNT_BYTES; i++) {
-        SBUF = key_bits[i];
-        while (!TI);
-        TI = 0;
+    if (request >= SPLIT_MSG_REQUEST_KEYS && request < SPLIT_MSG_REQUEST_KEYS + SPLIT_KEY_COUNT_BYTES) {
+        SBUF = key_bits[request - SPLIT_MSG_REQUEST_KEYS];
     }
-
 #if SPLIT_ENCODER_COUNT_BYTES > 0
-    for (uint8_t i = 0; i < SPLIT_ENCODER_COUNT_BYTES; i++) {
-        SBUF = encoder_bits[i];
-        while (!TI);
-        TI = 0;
+    else if (request >= SPLIT_MSG_REQUEST_ENCODERS && request < SPLIT_MSG_REQUEST_ENCODERS + SPLIT_ENCODER_COUNT_BYTES) {
+        SBUF = encoder_bits[request - SPLIT_MSG_REQUEST_ENCODERS];
     }
 #endif
+    else {
+        SBUF = 0;
+    }
 
+    while (!TI);
+    TI = 0;
     REN = 1;
 }

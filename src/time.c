@@ -62,7 +62,7 @@ void TMR0_interrupt() {
 void TMR0_init() {
     TL0 = 0x30;
     TH0 = 0xF8; // 65536 - 2000 = 63536
-    TMOD = bT0_M0;
+    TMOD |= bT0_M0;
 
     timer_1ms = 0;
 

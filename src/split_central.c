@@ -460,52 +460,52 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
 }
 
 #ifdef SPLIT_ENABLE
-static void split_periph_init() {
-    SM0 = 1;
-    SM1 = 0;
-}
+__bit did_not_respond = 1;
 
-static void split_periph_scan() {
-    SBUF = SPLIT_MSG_REQUEST_KEYS;
-    TB8 = 0;
-    while (!TI);
+static uint8_t split_periph_req(uint8_t request) {
+    did_not_respond = 1;
+    SBUF = request;
+    while (!TI) {}
     TI = 0;
     REN = 1;
 
+    request = 0; // Poll 256 times
+    while (!RI) {
+        if (++request == 0) goto exit;
+    }
+    RI = 0;
+    did_not_respond = 0;
+exit:
+    REN = 0;
+    return SBUF;
+}
+
+static void split_periph_scan() {
     uint8_t i = 0;
-    uint8_t wait_cycles = 0;
 
-    for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES + SPLIT_ENCODER_COUNT_BYTES; b++) {
-        while (!RI) {
-            if (++wait_cycles == 0) goto exit;
-        }
-        RI = 0;
-
-#if SPLIT_ENCODER_COUNT_BYTES > 0
-        if (b >= SPLIT_KEY_COUNT_BYTES) {
-            for (uint8_t j = 0; j < 4; j++) {
-                encoder_scan(split_periph_encoder_indices[i], (SBUF >> (j * 2)) & 0x03);
-                if (++i == SPLIT_PERIPH_ENCODER_COUNT) break;
-            }
-
-            continue;
-        }
-#endif
+    for (uint8_t b = 0; b < SPLIT_KEY_COUNT_BYTES; b++) {
+        split_periph_req(SPLIT_MSG_REQUEST_KEYS + b);
+        if (did_not_respond) return;
 
         for (uint8_t bit = 0; bit < 8; bit++) {
             key_state_inform(split_periph_key_indices[i], (SBUF >> bit) & 1);
-
-            if (++i == SPLIT_PERIPH_KEY_COUNT) {
-#if SPLIT_ENCODER_COUNT_BYTES > 0
-                i = 0; // Reset counter for encoders
-#endif
-                break;
-            }
+            if (++i == SPLIT_PERIPH_KEY_COUNT) break;
         }
     }
 
-exit:
-    REN = 0;
+#if SPLIT_ENCODER_COUNT_BYTES > 0
+    i = 0;
+
+    for (uint8_t b = 0; b < SPLIT_ENCODER_COUNT_BYTES; b++) {
+        split_periph_req(SPLIT_MSG_REQUEST_ENCODERS + b);
+        if (did_not_respond) return;
+
+        for (uint8_t j = 0; j < 4; j++) {
+            encoder_scan(split_periph_encoder_indices[i], (SBUF >> (j * 2)) & 0x03);
+            if (++i == SPLIT_PERIPH_ENCODER_COUNT) break;
+        }
+    }
+#endif
 }
 #endif
 
@@ -523,9 +523,6 @@ void keyboard_init() {
 #endif
 #if ENCODER_COUNT > 0
     encoder_init();
-#endif
-#ifdef SPLIT_ENABLE
-    split_periph_init();
 #endif
     key_event_queue_init();
     keyboard_init_user();

@@ -23,8 +23,30 @@ void UART_ISR() __interrupt(INT_NO_UART0) {
 }
 #endif
 
-void main() {
+#ifdef SPLIT_ENABLE
+static void UART_init() {
+    // UART0 @ Timer1, 750k bps
+    SM0 = 0;
+    SM1 = 1;
+    PCON |= SMOD;
+
+    TMOD = TMOD & ~bT1_GATE & ~bT1_CT & ~MASK_T1_MOD | bT1_M1;
+    T2MOD |= bTMR_CLK | bT1_CLK;
+#if CH55X == 2
+    TH1 = 254;
+#elif CH55X == 9
+    TH1 = 255;
+#endif
+    TR1 = 1;
+    TI = 1;
+}
+#endif
+
+static void main() {
     CLK_init();
+#ifdef SPLIT_ENABLE
+    UART_init();
+#endif
 #ifdef SPLIT_SIDE_CENTRAL
     TMR0_init();
     USB_init();
