@@ -1,2 +1,3 @@
 option('split', type : 'boolean', value : true)
 option('extra_sources', type : 'string', value : '')
+option('extra_periph_sources', type : 'string', value : '')

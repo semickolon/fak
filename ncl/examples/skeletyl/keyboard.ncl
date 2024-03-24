@@ -7,7 +7,7 @@ let side_central = {
     cols = [13, 35, 34, 33, 11],
     rows = [14, 15, 16, 17]
   },
-  split.channel = SoftSerialPin 30,
+  split.channel = CH552T.features.uart_30_31,
 } in
 
 let side_periph = {
@@ -16,7 +16,7 @@ let side_periph = {
     cols = [33, 17, 16, 15, 14],
     rows = [34, 35, 30, 31]
   },
-  split.channel = SoftSerialPin 13,
+  split.channel = CH552T.features.uart_12_13,
   keys = 
     let M = ColToRowKey in
     [
