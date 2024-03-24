@@ -27,7 +27,7 @@ static uint8_t response_to(uint8_t request) {
 }
 
 #ifdef SPLIT_SOFT_SERIAL_PIN
-void try_respond_to_soft_serial_request() {
+uint8_t try_respond_to_soft_serial_request() {
     EA = 0;
     soft_serial_recv();
     
@@ -35,7 +35,9 @@ void try_respond_to_soft_serial_request() {
         soft_serial_sbuf = response_to(soft_serial_sbuf);
         soft_serial_send();
     }
+
     EA = 1;
+    return !soft_serial_did_not_respond;
 }
 #endif
 
@@ -51,9 +53,6 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
     ES = 0;
     key_bits[key_idx / 8] = (key_bits[key_idx / 8] & ~(1 << shift)) | (down << shift);
     ES = 1;
-#ifdef SPLIT_SOFT_SERIAL_PIN
-    try_respond_to_soft_serial_request();
-#endif
 }
 
 #if SPLIT_ENCODER_COUNT_BYTES > 0
@@ -62,9 +61,6 @@ void encoder_scan(uint8_t encoder_idx, uint8_t reading) {
     ES = 0;
     encoder_bits[encoder_idx / 4] = encoder_bits[encoder_idx / 4] & ~(0x03 << shift) | (reading << shift);
     ES = 1;
-#ifdef SPLIT_SOFT_SERIAL_PIN
-    try_respond_to_soft_serial_request();
-#endif
 }
 #endif
 
@@ -89,13 +85,23 @@ void keyboard_init() {
 
 void keyboard_scan() {
     keyboard_scan_user();
+
 #ifdef SPLIT_SOFT_SERIAL_PIN
-    try_respond_to_soft_serial_request();
+    // Soft serial isn't interrupt-driven so we generously make way for it instead of continuously scanning
+    __bit responding = 0;
+
+    for (uint8_t i = 1000; i; i--) {
+        if (try_respond_to_soft_serial_request()) {
+            responding = 1;
+        } else if (responding) {
+            break;
+        }
+    }
 #endif
 }
 
 #ifndef SPLIT_SOFT_SERIAL_PIN
-void UART_interrupt() {
+void UART0_interrupt() {
     if (!RI) return;
     RI = 0;
     REN = 0;
