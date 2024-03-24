@@ -161,7 +161,7 @@ tap.layer.TO [0-31]
 
 ## Duplex matrix support
 
-FAK supports both col-to-row and row-to-col matrix scanning with `ColToRowKey` and `RowToColKey` respectively. Now, it's also possible to mix both of these two in one, resulting in a [duplex matrix](https://kbd.news/The-Japanese-duplex-matrix-1391.html). There is an example keyboard definition (and keymap) for the [Kazik](https://github.com/monokuroumu/Kazik), a duplex matrix keyboard, for your reference. But basically, to get a duplex matrix keyboard working, you just mix both `ColToRowKey`s and `RowToColKey`s like so in your `keyboard.ncl`.
+FAK supports both col-to-row and row-to-col matrix scanning with `ColToRowKey` and `RowToColKey` respectively. Now, it's also possible to mix both of these two in one, resulting in a [duplex matrix](https://kbd.news/The-Japanese-duplex-matrix-1391.html). There is an example keyboard definition in this repo for the [Kazik](https://github.com/monokuroumu/Kazik), a duplex matrix keyboard, for your reference. But basically, to get a duplex matrix keyboard working, you just mix both `ColToRowKey`s and `RowToColKey`s like so in your `keyboard.ncl`.
 
 ```
 let { ColToRowKey, RowToColKey, .. } = import "../../fak/keyboard.ncl" in
@@ -277,6 +277,12 @@ Limitations:
 
 [^2]: Almost any pin. USB data pins obviously won't work here.
 
+## Soft serial
+
+This is similar to QMK's `SOFT_SERIAL_PIN` (bitbanged half-duplex UART). FAK offers this in order to preserve compatibility with split keyboards designed for QMK + Pro Micro. You may also use this to be able to use one more pin for keys, since hardware UART uses two pins, but this, only one pin.
+
+For example, to use soft serial on pin 16: `split.channel = SoftSerialPin 16`. See also the provided example keyboard definition for [KLOR](https://github.com/GEIGEIGEIST/KLOR) in this repo.
+
 ## Combos
 
 Combos are implemented as *virtual keys*. They're like regular keys but they are activated by pressing multiple physical keys at the same time. And since they're like regular keys, they're just like any other key in your keymap with full support for all the features. They can even have different keycodes across layers.
@@ -326,6 +332,47 @@ let my_tap_dance = td.make 200 [kc.SPC, kc.ENT, hold.reg.layer 1] in
 
 Limitations:
 - Fully overlapping combos (e.g., `[2, 3]` and `[2, 3, 4]`) are not supported yet. Partially overlapping combos (e.g., `[2, 3]` and `[3, 4, 5]`) are supported though, as shown in the example above.
+
+## Encoders
+
+Yep. Encoders. To use them, first, add encoders to your keyboard definition. `PhysicalEncoder` takes in the following arguments: pin A, pin B, encoder resolution.
+
+```
+let { DirectPinKey, PhysicalEncoder, .. } = import "fak/keyboard.ncl" in
+let { CH552T, .. } = import "fak/mcus.ncl" in
+
+{
+  mcu = CH552T,
+  usb_dev = { ... },
+  encoders = [
+    PhysicalEncoder 10 11 4,
+    PhysicalEncoder 16 14 5,
+  ],
+  keys = [
+    D 30, D 31, D 32,
+  ],
+}
+```
+
+Then, similar to combos, add encoders to your virtual keys in your keymap with `encoder.cw` (clockwise) and `encoder.ccw` (counter-clockwise). They take in one argument, the encoder index. Encoder index `0` would be the first encoder in your keyboard definition. Encoder index `1` would be the second, and so on.
+
+```
+# We can arrange them however we like. They can even be mixed with combos like so.
+{
+  virtual_keys = [
+    combo.make 50 [0, 1],
+    encoder.ccw 1,
+    encoder.cw 0,
+    combo.make 60 [1, 2],
+    encoder.cw 1,
+  ],
+  layers = [
+    # (snip)
+  ],
+}
+```
+
+It's possible to have encoders on both sides of a split keyboard with `PeripheralSideEncoder`. You may refer to the provided [KLOR](https://github.com/GEIGEIGEIST/KLOR) example in this repo.
 
 ## Sticky mods
 
