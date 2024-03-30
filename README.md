@@ -164,7 +164,7 @@ tap.layer.TO [0-31]
 FAK supports both col-to-row and row-to-col matrix scanning with `ColToRowKey` and `RowToColKey` respectively. Now, it's also possible to mix both of these two in one, resulting in a [duplex matrix](https://kbd.news/The-Japanese-duplex-matrix-1391.html). There is an example keyboard definition in this repo for the [Kazik](https://github.com/monokuroumu/Kazik), a duplex matrix keyboard, for your reference. But basically, to get a duplex matrix keyboard working, you just mix both `ColToRowKey`s and `RowToColKey`s like so in your `keyboard.ncl`.
 
 ```
-let { ColToRowKey, RowToColKey, .. } = import "../../fak/keyboard.ncl" in
+let { ColToRowKey, RowToColKey, .. } = import "fak/keyboard.ncl" in
 
 # (snip)
 
