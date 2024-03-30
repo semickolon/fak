@@ -32,8 +32,8 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 Requirements:
 - [`sdcc` 4.2.0](https://sourceforge.net/projects/sdcc/files)
-- [`nickel` 1.3.0](https://github.com/tweag/nickel/releases/tag/1.3.0)
-- [`python` 3.11](https://www.python.org/downloads)
+- [`nickel` 1.4.1](https://github.com/tweag/nickel/releases/tag/1.4.1)
+- [`python` 3.11.6](https://www.python.org/downloads)
 - [`meson` 1.2.3](https://mesonbuild.com/)
 - [`ninja` 1.11.1](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
 - [`wchisp`](https://github.com/ch32-rs/wchisp/releases/tag/nightly)

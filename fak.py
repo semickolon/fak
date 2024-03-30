@@ -6,12 +6,14 @@ import hashlib
 import os
 import sys
 import time
+import shutil
 
 os.chdir(sys.path[0])
 
-EVAL_PATH = '.main.ncl.json'
+EVAL_PATH = '.eval.json'
 BUILD_DIR = 'build'
 SUBCOMMAND = sys.argv[1]
+HASH_MANAGED = '!managed'
 
 
 def compute_hash_sig():
@@ -24,9 +26,9 @@ def compute_hash_sig():
     return h.hexdigest()
 
 
-def save_evaluation(hash_sig):
+def save_evaluation():
     completed_proc = subprocess.run(
-        ['nickel', 'export', '--format', 'json', 'ncl/fak/main.ncl'],
+        ['nickel', 'export', '-Incl', 'tests/eval.ncl'],
         capture_output=True,
         text=True,
     )
@@ -37,7 +39,7 @@ def save_evaluation(hash_sig):
     
     raw_result = completed_proc.stdout
     result = json.loads(raw_result)
-    result['__hash__'] = hash_sig
+    result['__hash__'] = compute_hash_sig()
 
     with open(EVAL_PATH, 'w') as f:
         f.write(json.dumps(result, indent=2))
@@ -45,25 +47,25 @@ def save_evaluation(hash_sig):
     return result
 
 
-def load_evaluation(hash_sig):
+def load_evaluation():
     if not os.path.isfile(EVAL_PATH):
         return None
     
     with open(EVAL_PATH, 'r') as f:
         result = json.loads(f.read())
+        rhash = result['__hash__']
 
-        if result['__hash__'] == hash_sig:
+        if rhash == HASH_MANAGED or rhash == compute_hash_sig():
             return result
     
     return None
 
 
 def evaluate_ncl():
-    hash_sig = compute_hash_sig()
-    result = load_evaluation(hash_sig)
+    result = load_evaluation()
 
     if result is None:
-        result = save_evaluation(hash_sig)
+        result = save_evaluation()
     
     return result
 
@@ -84,6 +86,9 @@ def meson_configure():
 
     print("Evaluating Nickel files...")
     result = evaluate_ncl()
+
+    if result['__hash__'] == HASH_MANAGED:
+        print("Info: This is a managed evaluation.")
 
     for key, value in result['meson_options'].items():
         subprocess.run(['meson', 'configure', f'-D{key}={value}'], check=True, cwd=BUILD_DIR)
@@ -132,6 +137,23 @@ def subcmd_flash_peripheral():
     wait_for_device()
     subprocess.run(['meson', 'compile', 'flash_peripheral'], check=True, cwd=BUILD_DIR)
 
+
+def subcmd_load_managed_eval():
+    result = json.loads(sys.stdin.read())
+    result['__hash__'] = HASH_MANAGED
+
+    with open(EVAL_PATH, 'w') as f:
+        f.write(json.dumps(result, indent=2))
+
+
+def subcmd_clean():
+    if os.path.isfile(EVAL_PATH):
+        os.remove(EVAL_PATH)
+    
+    if os.path.isdir(BUILD_DIR):
+        shutil.rmtree(BUILD_DIR)
+    
+
 # TODO: Use argparse
 
 if SUBCOMMAND == 'query_ncl':
@@ -142,6 +164,10 @@ elif SUBCOMMAND in ['flash', 'flash_c', 'flash_central']:
     subcmd_flash_central()
 elif SUBCOMMAND in ['flash_p', 'flash_peripheral']:
     subcmd_flash_peripheral()
+elif SUBCOMMAND == 'load_managed_eval':
+    subcmd_load_managed_eval()
+elif SUBCOMMAND == 'clean':
+    subcmd_clean()
 else:
     print("Error: Unknown subcommand")
     sys.exit(1)

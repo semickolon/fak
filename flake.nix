@@ -6,13 +6,14 @@
     naersk.url = "github:nix-community/naersk";
     parts.url = "github:hercules-ci/flake-parts";
     devshell.url = "github:numtide/devshell";
+    nickel.url = "github:tweag/nickel/1.4.1";
   };
 
   outputs = inputs:
     inputs.parts.lib.mkFlake {inherit inputs;} {
       imports = [inputs.devshell.flakeModule];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
-      perSystem = { config, pkgs, ... }: let 
+      perSystem = { config, pkgs, system, ... }: let 
         naersk = pkgs.callPackage inputs.naersk {};
         wchisp = naersk.buildPackage rec {
           pname = "wchisp";
@@ -24,6 +25,7 @@
             hash = "sha256-Ju2DBv3R4O48o8Fk/AFXOBIsvGMK9hJ8Ogxk47f7gcU=";
           };
         };
+        nickel = inputs.nickel.packages.${system}.default;
         commands = [
           {
             help = "build and flash to central";
@@ -43,17 +45,17 @@
           {
             help = "clean up the build dir";
             name = "clean";
-            command = "rm -r $PRJ_ROOT/build";
+            command = "python $PRJ_ROOT/fak.py clean";
           }
         ];
         contents = with pkgs; [
           sdcc
           nickel
-          nls
           topiary
           meson
           python311
           ninja
+          wchisp
           # meson checks for C compilers to work. It doesn't count SDCC.
           # Even though we don't use it, here we add gcc just to satisfy meson.
           gcc
@@ -65,7 +67,6 @@
           inherit contents;
         };
         devshells.default = { inherit commands; devshell = { packages = contents; }; };
-        devshells.full = { inherit commands; devshell = { packages = contents ++ [wchisp]; }; };
       };
     };
 }

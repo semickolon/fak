@@ -1,9 +1,10 @@
+fun _kb _km =>
+
 let util = import "util_functions.ncl" in
 
 let { Keyboard, .. } = import "keyboard.ncl" in
-let kb | Keyboard = import "../keyboard.ncl" in
+let kb | Keyboard = _kb in
 
-let _km = import "../keymap.ncl" in
 let { Keymap, .. } = (import "keymap.ncl") kb _km in
 let km | Keymap = _km in
 

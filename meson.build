@@ -38,7 +38,7 @@ foreach side : sides
         output : side + '.h',
         capture : true,
         command : [python, '@INPUT@', 'query_ncl', side + '.h'],
-        depend_files : ['.main.ncl.json'],
+        depend_files : ['.eval.json'],
     )
 
     side_c = custom_target(side + '.c',
@@ -46,7 +46,7 @@ foreach side : sides
         output : side + '.c',
         capture : true,
         command : [python, '@INPUT@', 'query_ncl', side + '.c'],
-        depend_files : ['.main.ncl.json'],
+        depend_files : ['.eval.json'],
     )
 
     dir_base = meson.current_source_dir()
