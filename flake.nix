@@ -3,17 +3,18 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     naersk.url = "github:nix-community/naersk";
     parts.url = "github:hercules-ci/flake-parts";
     devshell.url = "github:numtide/devshell";
-    nickel.url = "github:tweag/nickel/1.4.1";
   };
 
   outputs = inputs:
-    inputs.parts.lib.mkFlake {inherit inputs;} {
+    inputs.parts.lib.mkFlake { inherit inputs; } {
       imports = [inputs.devshell.flakeModule];
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
-      perSystem = { config, pkgs, system, ... }: let 
+      perSystem = { config, pkgs, system, ... }: let
+        pkgs-unstable = import inputs.nixpkgs-unstable { inherit system; };
         naersk = pkgs.callPackage inputs.naersk {};
         wchisp = naersk.buildPackage rec {
           pname = "wchisp";
@@ -25,7 +26,6 @@
             hash = "sha256-Ju2DBv3R4O48o8Fk/AFXOBIsvGMK9hJ8Ogxk47f7gcU=";
           };
         };
-        nickel = inputs.nickel.packages.${system}.default;
         commands = [
           {
             help = "build and flash to central";
@@ -50,8 +50,9 @@
         ];
         contents = with pkgs; [
           sdcc
-          nickel
-          topiary
+          pkgs-unstable.nickel
+          pkgs-unstable.nls
+          pkgs-unstable.topiary
           meson
           python311
           ninja
