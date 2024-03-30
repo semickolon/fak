@@ -14,10 +14,14 @@ typedef struct {
     uint16_t require_prior_idle_ms;
 #endif
     uint8_t key_indices[COMBO_MAX_KEY_COUNT];
+#ifdef COMBO_FULLY_OVERLAPPING
+    uint8_t parent_count;
+    uint8_t parents[COMBO_MAX_PARENT_COUNT];
+#endif
 } fak_combo_def_t;
 
 void combo_push_key_event(uint8_t key_idx, uint8_t pressed);
-void combo_handle();
+void combo_handle(uint8_t);
 void combo_init();
 
 #endif // __COMBO_H__

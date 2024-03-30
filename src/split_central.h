@@ -42,6 +42,7 @@ uint32_t get_real_key_code(uint8_t key_idx);
 uint8_t get_future_type(uint32_t key_code);
 uint16_t get_last_tap_timestamp();
 void key_state_inform(uint8_t key_idx, uint8_t down);
+uint8_t is_key_down(uint8_t key_idx);
 
 void keyboard_init();
 void keyboard_scan();

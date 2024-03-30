@@ -285,9 +285,6 @@ let _central_defines = {
   REPEAT_KEY_ENABLE = is_custom_keys_of_type_of_keycodes_used 'fak [5],
 
   COMBO_COUNT = combo_count,
-  COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
-    |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
-  
   ENCODER_COUNT = encoder_count,
 
   USB_NUM_INTERFACES = [true, CONSUMER_KEYS_ENABLE, MOUSE_KEYS_ENABLE]
@@ -317,6 +314,10 @@ let _central_defines = {
   COMBO_MAX_KEY_COUNT = combos
     |> std.array.map (fun c => std.array.length c.data.key_indices)
     |> util.array.max,
+  COMBO_REQUIRE_PRIOR_IDLE_MS_ENABLE = combos
+    |> std.array.any (fun c => c.data.require_prior_idle_ms > 0),
+  COMBO_FULLY_OVERLAPPING = true,
+  COMBO_MAX_PARENT_COUNT = 1,
 } in
 
 let _xaddr_sizes = let
@@ -369,11 +370,10 @@ in {
 }
 & util.record.only_if (combo_count > 0) (
   let sizeof = sizeof & {
-    fak_combo_state_t = sizeof.uint8_t + sizeof.uint16_t,
-    fak_combo_key_queue_entry_t = 2 * sizeof.uint8_t,
+    fak_combo_key_queue_entry_t = 2 * sizeof.uint8_t + sizeof.uint16_t,
   } in
   {
-    COMBO_STATES = sizeof.fak_combo_state_t * _central_defines.COMBO_COUNT, 
+    COMBO_STATES = sizeof.uint8_t * _central_defines.COMBO_COUNT, 
     COMBO_KEY_QUEUE = sizeof.uint8_t + (sizeof.fak_combo_key_queue_entry_t * _central_defines.COMBO_KEY_QUEUE_LEN),
   }
 )

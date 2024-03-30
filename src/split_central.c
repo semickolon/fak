@@ -462,6 +462,11 @@ void key_state_inform(uint8_t key_idx, uint8_t down) {
     }
 }
 
+uint8_t is_key_down(uint8_t key_idx) {
+    fak_key_state_t *ks = &key_states[key_idx];
+    return !!(ks->status & KEY_STATUS_DOWN);
+}
+
 #ifdef SPLIT_ENABLE
 __bit split_periph_did_not_respond;
 
@@ -551,7 +556,7 @@ void keyboard_scan() {
 #endif
     delay(DEBOUNCE_MS);
 #if COMBO_COUNT > 0
-    combo_handle();
+    combo_handle(0);
 #endif
 #ifdef MOUSE_KEYS_ENABLE
     mouse_process();

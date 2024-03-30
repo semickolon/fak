@@ -16,6 +16,7 @@ let cu = {
   TH_R = MO 2 & kc.SPC & hold.reg.behavior {},
   FN_G = MO 3 & kc.GRV & hold.reg.behavior {},
   BOOT = tap.custom.fak.BOOT,
+  REST = tap.custom.fak.REST,
 } in
 
 {
@@ -24,7 +25,9 @@ let cu = {
     encoder.cw 0,
     encoder.ccw 1,
     encoder.cw 1,
-    combo.make 50 [0, 1],
+    combo.make 255 [1, 2, 3],
+    combo.make 50 [1, 2],
+    combo.make 50 [11, 12],
   ],
   layers = [
     [
@@ -33,7 +36,7 @@ let cu = {
         md.lctl, kc.Z,    kc.X,    kc.C,    kc.V,    kc.B,    kc.N,   kc.X,  kc.N, kc.M, kc.COMM, kc.DOT, kc.SLSH, md.lalt,
                           kc.N0,   kc.BSPC, md.lsft, md.lalt,                kc.N1, kc.N2, kc.SPC, kc.N4,
         me.PREV, me.NEXT, me.VOLD, me.VOLU,
-        cu.BOOT,
+        kc.Y, kc.Z, kc.G,
     ]
   ]
 }

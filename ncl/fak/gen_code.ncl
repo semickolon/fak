@@ -96,8 +96,28 @@ m%"
     if std.array.length ir.combo_defs > 0 then
       m%"
         #include "combo.h"
-        __code fak_combo_def_t combo_defs[COMBO_COUNT] = %{codegen.val.array ir.combo_defs};
+        __code fak_combo_def_t combo_defs[COMBO_COUNT] = { {
+          .flags = 1,
+          .key_idx_mapping = 48,
+          .key_indices = { 1, 2, 3 },
+          .timeout_ms = 255,
+          .parent_count = 0,
+        }, {
+          .flags = 0,
+          .key_idx_mapping = 49,
+          .key_indices = { 1, 2 },
+          .timeout_ms = 50,
+          .parent_count = 1,
+          .parents = {0},
+        }, {
+          .flags = 0,
+          .key_idx_mapping = 50,
+          .key_indices = { 11, 12 },
+          .timeout_ms = 50,
+          .parent_count = 0,
+        } };
       "%
+        # __code fak_combo_def_t combo_defs[COMBO_COUNT] = %{codegen.val.array ir.combo_defs};
     else
       "// (No combo defs)"
   }
