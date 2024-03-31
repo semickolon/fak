@@ -1,7 +1,3 @@
-let rec _number = {
-  ceil = fun n => if std.number.fract n == 0 then n else std.number.floor (n + 1),
-} in
-
 let rec _array = {
   unique = fun arr => std.array.fold_left (fun acc e =>
     if std.array.elem e acc then acc else acc @ [e]
@@ -25,16 +21,12 @@ let rec _array = {
   
   join = fun sep arr => std.array.fold_left (++) "" (std.array.intersperse sep arr),
 
-  chunk = fun size arr =>
-    let arr_len = std.array.length arr in
-    if arr_len > size then
-      std.array.generate (fun i =>
-        let start = i * size in
-        let end = std.number.min (start + size) arr_len in
-        std.array.slice start end arr
-      ) (_number.ceil (arr_len / size))
+  chunk | std.number.PosNat -> Array Dyn -> Array (Array Dyn) = fun size arr =>
+    if std.array.length arr <= size then
+      [ arr ]
     else
-      [arr],
+      let splits = std.array.split_at size arr in
+      std.array.prepend splits.left ( chunk size splits.right ),
   
   at_or = fun i default_value arr =>
     if i < std.array.length arr then
@@ -93,7 +85,6 @@ let rec _record = {
 } in
 
 {
-  number = _number,
   array = _array,
   bit = _bit,
   record = _record,
