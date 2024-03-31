@@ -102,6 +102,9 @@ def subcmd_compile():
 
 
 def wait_for_device():
+    if shutil.which('wchisp') is None:
+        sys.exit('Error: wchisp not found! Aborting.')
+
     attempts = 0
     while attempts < 16:
         try:
