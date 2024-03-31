@@ -30,51 +30,17 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 
 # Getting started
 
-Requirements:
-- [`sdcc` 4.2.0](https://sourceforge.net/projects/sdcc/files)
-- [`nickel` 1.5.0](https://github.com/tweag/nickel/releases/tag/1.5.0)
-- [`python` 3.11.6](https://www.python.org/downloads)
-- [`meson` 1.2.3](https://mesonbuild.com/)
-- [`ninja` 1.11.1](https://github.com/ninja-build/ninja/releases/tag/v1.11.1)
-- [`wchisp`](https://github.com/ch32-rs/wchisp/releases/tag/nightly)
+We have now moved to user configuration repositories: [fak-config](https://github.com/semickolon/fak-config). Refer to `fak-config` on how to get started and build keyboards with FAK. You will also find full keyboard and keymap example definitions there.
 
-Versions listed above are from the Nix flake, representative of my dev environment. You can probably use versions later than these just fine, but if you encounter problems, having these exact versions might help.
-
-If you use Nix, you can simply use the provided flake.
-
-1. Clone this repo
-1. Edit `ncl/keyboard.ncl` and `ncl/keymap.ncl`
-1. `python fak.py flash`
-1. `python fak.py flash_p` for the peripheral side if you have a split
-
-⚠️ Do **not** put .ncl files outside of the `ncl` directory. If you do, FAK won't pick up the changes you make in these files.
-
-ℹ️ It is **recommended** you use `fak.py` instead of entering `meson` commands directly. The build system is streamlined such that Nickel automatically gives you the correct build options. However, Meson can't configure itself for this to work, and we wouldn't want to enter those build options manually everytime they change, so `fak.py` exists as a helper script that derives build options from Nickel then applies them to Meson.
-
-**TL;DR:** Don't use Meson directly. `fak.py` is your friend. Makes life easy.
-
-## Dev Container
-
-For easier setup, you can also use the provided Dev Container.
-
-1. Fork this repo
-1. Create a new codespace
-1. Wait for the environment to be loaded in the terminal (3-6 minutes) until you can enter commands
-
-The only thing that won't work from a remote setup is, of course, flashing. You'll have to do that locally with `wchisp`. Thankfully, `wchisp` provides prebuilt binaries so getting that set up is very easy.
-
-1. In your codespace, `python fak.py compile`
-1. Download the `.ihx` file(s) in `build/` to your local machine
-1. In your local machine, `wchisp flash central.ihx`
-1. And then if you have a split, `wchisp flash peripheral.ihx`
+This repo is for the development of FAK firmware itself where the core functionality and features are implemented.
 
 ## Examples
 
 Check out the examples and see how keyboards and keymaps are defined in FAK, and how powerful and crazy it can get.
 
-1. [Beginner - 3x3 macropad](ncl/examples/3x3_macropad)
-1. [Intermediate - cheapis](ncl/examples/cheapis)
-1. [Advanced - zilpzalp](ncl/examples/zilpzalp)
+1. [Beginner - 3x3 macropad](https://github.com/semickolon/fak-config/tree/main/keyboards/3x3_macropad)
+1. [Intermediate - cheapis](https://github.com/semickolon/fak-config/tree/main/keyboards/cheapis)
+1. [Advanced - zilpzalp](https://github.com/semickolon/fak-config/tree/main/keyboards/zilpzalp)
 
 # Projects
 
@@ -161,7 +127,7 @@ tap.layer.TO [0-31]
 
 ## Duplex matrix support
 
-FAK supports both col-to-row and row-to-col matrix scanning with `ColToRowKey` and `RowToColKey` respectively. Now, it's also possible to mix both of these two in one, resulting in a [duplex matrix](https://kbd.news/The-Japanese-duplex-matrix-1391.html). There is an example keyboard definition in this repo for the [Kazik](https://github.com/monokuroumu/Kazik), a duplex matrix keyboard, for your reference. But basically, to get a duplex matrix keyboard working, you just mix both `ColToRowKey`s and `RowToColKey`s like so in your `keyboard.ncl`.
+FAK supports both col-to-row and row-to-col matrix scanning with `ColToRowKey` and `RowToColKey` respectively. Now, it's also possible to mix both of these two in one, resulting in a [duplex matrix](https://kbd.news/The-Japanese-duplex-matrix-1391.html). There is an [example keyboard definition](https://github.com/semickolon/fak-config/blob/main/keyboards/kazik/keyboard.ncl) for the [Kazik](https://github.com/monokuroumu/Kazik), a duplex matrix keyboard, for your reference. But basically, to get a duplex matrix keyboard working, you just mix both `ColToRowKey`s and `RowToColKey`s like so in your `keyboard.ncl`.
 
 ```
 let { ColToRowKey, RowToColKey, .. } = import "fak/keyboard.ncl" in
@@ -281,7 +247,7 @@ Limitations:
 
 This is similar to QMK's `SOFT_SERIAL_PIN` (bitbanged half-duplex UART). FAK offers this in order to preserve compatibility with split keyboards designed for QMK + Pro Micro. You may also use this to be able to use one more pin for keys, since hardware UART uses two pins, but this, only one pin.
 
-For example, to use soft serial on pin 16: `split.channel = SoftSerialPin 16`. See also the provided example keyboard definition for [KLOR](https://github.com/GEIGEIGEIST/KLOR) in this repo.
+For example, to use soft serial on pin 16: `split.channel = SoftSerialPin 16`. See also the provided [example keyboard definition](https://github.com/semickolon/fak-config/blob/main/keyboards/klor/keyboard.ncl) for [KLOR](https://github.com/GEIGEIGEIST/KLOR).
 
 ## Combos
 
@@ -372,7 +338,7 @@ Then, similar to combos, add encoders to your virtual keys in your keymap with `
 }
 ```
 
-It's possible to have encoders on both sides of a split keyboard with `PeripheralSideEncoder`. You may refer to the provided [KLOR](https://github.com/GEIGEIGEIST/KLOR) example in this repo.
+It's possible to have encoders on both sides of a split keyboard with `PeripheralSideEncoder`. You may refer to the provided [KLOR](https://github.com/GEIGEIGEIST/KLOR) example [here](https://github.com/semickolon/fak-config/blob/main/keyboards/klor/keyboard.ncl).
 
 ## Sticky mods
 
