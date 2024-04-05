@@ -24,7 +24,7 @@ Besides that, I want to be able to make keyboard configurations **declaratively*
 |---------|--------|
 | CH552T  | ✅ Fully supported and tested |
 | CH552G  | ✅ Fully supported and tested |
-| CH552E  | 🟡 Not tested but likely functional |
+| CH552E  | ✅ Fully supported and tested |
 | CH559L  | 🚧 Partially working, WIP |
 | CH558L  | ❓ Not tested but should be the same as CH559L |
 
