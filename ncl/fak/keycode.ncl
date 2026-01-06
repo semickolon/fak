@@ -77,6 +77,8 @@ let mod_ = fun K => let K = fun mod => K { mods."%{mod}" = true } in {
         VOLD = K 234,
         NEXT = K 181,
         PREV = K 182,
+        FASTFWD = K 179,
+        REWIND = K 180,
       },
       mouse = let K = fun code => K 'mouse code in {
         BTN1 = K 0,
